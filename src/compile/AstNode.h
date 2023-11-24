@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum NodeType
+typedef enum NodeType
 {
 	TYPE_IDENT,
 	TYPE_NUMBER,
 	TYPE_STR,
-};
+} NodeType;
 
 typedef struct AstNode
 {
@@ -25,7 +25,7 @@ typedef struct AstNode
 
 AstNode createNode(NodeType type, char *sVal, unsigned int childNodesLen)
 {
-	return
+	AstNode ret =	
 	{
 		childNodesLen,
 		0,
@@ -35,6 +35,8 @@ AstNode createNode(NodeType type, char *sVal, unsigned int childNodesLen)
 
 		type
 	};
+	
+	return ret;
 }
 
 void addChild(AstNode *node, AstNode child)

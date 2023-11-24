@@ -1,9 +1,13 @@
 all:
 	# Compile the runner
-	gcc ./run/run.c -o ./output/ssoup_run.out
+	gcc -o ./output/ssoup_run.out ./run/run.c 
 	
 	# Compile the compiler
-	bison ./compile/parser.y -o ./output/parser.tab.c
-	flex ./compile/lexer.l -o ./output/lexer.yy.c
+	bison -o ./compile/parser.tab.c ./compile/parser.y -d
+	flex -o ./compile/lexer.yy.c ./compile/lexer.l
 
-	gcc ./output/lexer.yy.c ./output/parser.tab.c -o ./output/ssoup_compile.out
+	gcc -o ./output/ssoup_compile.out ./compile/lexer.yy.c ./compile/parser.tab.c
+
+	rm ./compile/lexer.yy.c
+	rm ./compile/parser.tab.c
+	rm ./compile/parser.tab.h
