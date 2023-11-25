@@ -7,9 +7,10 @@
 
 typedef enum NodeType
 {
-	TYPE_IDENT,
 	TYPE_NUMBER,
 	TYPE_STR,
+	TYPE_BINOP,
+	TYPE_ROOT,
 } NodeType;
 
 typedef struct AstNode
@@ -39,9 +40,17 @@ AstNode createNode(NodeType type, char *sVal, unsigned int childNodesLen)
 	return ret;
 }
 
-void addChild(AstNode *node, AstNode child)
+void nodeAddChild(AstNode *node, AstNode child)
 {
 	node->childNodes[node->childNodesOccupied++] = child;
+}
+
+void nodeChildResize(AstNode *node, unsigned int size)
+{
+	node->childNodesLen = size;
+	node->childNodesOccupied = (size > node->childNodesOccupied) ? node->childNodesOccupied : size;
+	
+	node->childNodes = (AstNode *) realloc(node->childNodes, size * sizeof(AstNode));
 }
 
 #endif
