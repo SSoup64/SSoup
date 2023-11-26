@@ -22,6 +22,14 @@ const char *NodeTypeToString(NodeType type)
 		case TYPE_STR:
 			return "String";
 			break;
+
+		case TYPE_IDENT:
+			return "Identifier";
+			break;
+	
+		case TYPE_VAR_DECL:
+			return "Variable declaration";
+			break;
 	}
 }
 

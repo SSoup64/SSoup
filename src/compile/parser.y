@@ -75,7 +75,13 @@ expr:			expr "+" expr																		{
 																										*$$ = ret;
 																									}
 																																			
-var_decl:		TOK_LET TOK_IDENT																	{}
+var_decl:		"let" TOK_IDENT																		{
+																										AstNode ret = createNode(TYPE_VAR_DECL, "", 1);
+																										nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($2), 0));
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
 %%
 
 void yyerror(const char *s)

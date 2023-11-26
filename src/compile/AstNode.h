@@ -11,6 +11,8 @@ typedef enum NodeType
 	TYPE_STR,
 	TYPE_BINOP,
 	TYPE_ROOT,
+	TYPE_IDENT,
+	TYPE_VAR_DECL,
 } NodeType;
 
 typedef struct AstNode
