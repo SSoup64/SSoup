@@ -22,12 +22,13 @@
 %token <sVal>	TOK_LET "let" // Keywords
 %token <sVal>	TOK_IDENT TOK_STR TOK_NUMBER
 %token <sVal>	TOK_SEMICOLONS ";"
-%token <sVal>	TOK_PLUS "+"
+%token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/"
 
 %type <nodeVal> root stmt expr var_decl
 
 %nonassoc		TOK_NUMBER TOK_STR TOK_IDENT TOK_SEMICOLONS
-%left			TOK_PLUS
+%left			TOK_PLUS TOK_MINUS
+%left			TOK_STAR TOK_SLASH
 
 %%
 
@@ -51,8 +52,38 @@ stmt:			var_decl ";"	 																	{
 																										*$$ = *$1;
 																									}
 
-expr:			expr "+" expr																		{
+expr:			expr "*" expr																		{
+																										AstNode ret = createNode(TYPE_BINOP, "*", 2);
+
+																										nodeAddChild(&ret, *$1);
+																										nodeAddChild(&ret, *$3);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			expr "/" expr																		{
+																										AstNode ret = createNode(TYPE_BINOP, "/", 2);
+
+																										nodeAddChild(&ret, *$1);
+																										nodeAddChild(&ret, *$3);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			expr "+" expr																		{
 																										AstNode ret = createNode(TYPE_BINOP, "+", 2);
+
+																										nodeAddChild(&ret, *$1);
+																										nodeAddChild(&ret, *$3);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			expr "-" expr																		{
+																										AstNode ret = createNode(TYPE_BINOP, "-", 2);
 
 																										nodeAddChild(&ret, *$1);
 																										nodeAddChild(&ret, *$3);
