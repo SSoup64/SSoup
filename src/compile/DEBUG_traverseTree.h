@@ -39,5 +39,5 @@ void traverseTree(AstNode node, int indent)
 	
 	// Traverse the tree for all the child objects
 	for (int i = 0; i < node.childNodesOccupied; i++)
-		traverseTree(node.childNodes[0], indent + 1);
+		traverseTree(node.childNodes[i], indent + 1);
 }

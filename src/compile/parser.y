@@ -33,10 +33,13 @@
 
 root:			stmt																				{
 																										rootNode = createNode(TYPE_ROOT, "", 1);
-																										// nodeChildResize(&root, root.childNodesLen + 1);
 																										nodeAddChild(&rootNode, *$1);
 																									}
-	|			root stmt																			{}
+
+	|			root stmt																			{
+																										nodeChildResize(&rootNode, rootNode.childNodesLen + 1);
+																										nodeAddChild(&rootNode, *$2);
+																									}
 
 stmt:			var_decl ";"	 																	{
 																										$$ = ALLOC;
