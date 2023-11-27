@@ -15,6 +15,8 @@
 "*"									{ return TOK_STAR; }
 "/"									{ return TOK_SLASH; }
 
+"="									{ return TOK_EQ; }
+
 ";"									{ return TOK_SEMICOLONS; }
 %%
 

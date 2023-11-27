@@ -22,11 +22,12 @@
 %token <sVal>	TOK_LET "let" // Keywords
 %token <sVal>	TOK_IDENT TOK_STR TOK_NUMBER
 %token <sVal>	TOK_SEMICOLONS ";"
-%token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/"
+%token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
 
-%type <nodeVal> root stmt expr var_decl
+%type <nodeVal> root stmt expr var_decl var_assign
 
 %nonassoc		TOK_NUMBER TOK_STR TOK_IDENT TOK_SEMICOLONS
+%right			TOK_EQ
 %left			TOK_PLUS TOK_MINUS
 %left			TOK_STAR TOK_SLASH
 
@@ -34,11 +35,13 @@
 
 root:			stmt																				{
 																										rootNode = createNode(TYPE_ROOT, "", 1);
+
 																										nodeAddChild(&rootNode, *$1);
 																									}
 
 	|			root stmt																			{
 																										nodeChildResize(&rootNode, rootNode.childNodesLen + 1);
+
 																										nodeAddChild(&rootNode, *$2);
 																									}
 
@@ -49,6 +52,11 @@ stmt:			var_decl ";"	 																	{
 
 	|			expr ";"																			{
 																										$$ = ALLOC;
+																										*$$ = *$1;
+																									}
+
+	|			var_assign ";"																		{
+																										$$ = ALLOC
 																										*$$ = *$1;
 																									}
 
@@ -105,9 +113,27 @@ expr:			expr "*" expr																		{
 																										$$ = ALLOC;
 																										*$$ = ret;
 																									}
-																																			
+	
+	|			TOK_IDENT																			{
+																										AstNode ret = createNode(TYPE_IDENT, strdup($1), 0);
+																										
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+var_assign:		TOK_IDENT "=" expr																	{
+																										AstNode ret = createNode(TYPE_VAR_ASSIGN, "", 2);
+
+																										nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($1), 0));
+																										nodeAddChild(&ret, *$3);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
 var_decl:		"let" TOK_IDENT																		{
 																										AstNode ret = createNode(TYPE_VAR_DECL, "", 1);
+
 																										nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($2), 0));
 
 																										$$ = ALLOC;

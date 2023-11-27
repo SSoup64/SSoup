@@ -30,6 +30,10 @@ const char *NodeTypeToString(NodeType type)
 		case TYPE_VAR_DECL:
 			return "Variable declaration";
 			break;
+
+		case TYPE_VAR_ASSIGN:
+			return "Variable assignment";
+			break;
 	}
 }
 
