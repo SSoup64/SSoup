@@ -14,6 +14,7 @@ typedef enum NodeType
 	TYPE_IDENT,
 	TYPE_VAR_DECL,
 	TYPE_VAR_ASSIGN,
+	TYPE_DEBUG_PRINT,
 } NodeType;
 
 typedef struct AstNode

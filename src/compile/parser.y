@@ -62,6 +62,15 @@ stmt:			var_decl ";"	 																	{
 																										*$$ = *$1;
 																									}
 
+	|			"print" "(" expr ")" ";"															{
+																										AstNode ret = createNode(TYPE_DEBUG_PRINT, "", 1);
+
+																										nodeAddChild(&ret, *$3);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
 expr:			expr "*" expr																		{
 																										AstNode ret = createNode(TYPE_BINOP, "*", 2);
 
@@ -115,7 +124,7 @@ expr:			expr "*" expr																		{
 																									}
 
 	|			TOK_STR																				{
-																										AstNode ret = createNode(TYPE_NUMBER, strdup($1), 0);
+																										AstNode ret = createNode(TYPE_STR, strdup($1), 0);
 
 																										$$ = ALLOC;
 																										*$$ = ret;

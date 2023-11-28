@@ -34,6 +34,10 @@ const char *NodeTypeToString(NodeType type)
 		case TYPE_VAR_ASSIGN:
 			return "Variable assignment";
 			break;
+	
+		case TYPE_DEBUG_PRINT:
+			return "Debug print";
+			break;
 	}
 }
 
