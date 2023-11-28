@@ -19,10 +19,11 @@
 
 %start root
 
-%token <sVal>	TOK_LET "let" // Keywords
+%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" // Keywords
 %token <sVal>	TOK_IDENT TOK_STR TOK_NUMBER
 %token <sVal>	TOK_SEMICOLONS ";"
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
+%token <sVal>	TOK_LPAREN "(" TOK_RPAREN ")"
 
 %type <nodeVal> root stmt expr var_decl var_assign
 
@@ -30,6 +31,7 @@
 %right			TOK_EQ
 %left			TOK_PLUS TOK_MINUS
 %left			TOK_STAR TOK_SLASH
+%right			TOK_LPAREN TOK_RPAREN
 
 %%
 
@@ -98,6 +100,11 @@ expr:			expr "*" expr																		{
 
 																										$$ = ALLOC;
 																										*$$ = ret;
+																									}
+
+	|			"(" expr ")"																		{
+																										$$ = ALLOC;
+																										*$$ = *$2;
 																									}
 
 	|			TOK_NUMBER																			{
