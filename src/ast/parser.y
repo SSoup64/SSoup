@@ -1,12 +1,13 @@
 %define parse.lac full
 %define parse.error detailed 
 %{
-	#include "./AstNode.h"
-	#include "./DEBUG_traverseTree.h"
-	
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+
+	#include "./AstNode.h"
+	#include "./DEBUG_traverseTree.h"
+	#include "../bytecode/Compile.h"
 
 	#define ALLOC \
 	(struct AstNode *) malloc(sizeof(struct AstNode)); \
@@ -168,6 +169,9 @@ int main(int argc, char **argv)
 	yyparse();
 	
 	traverseTree(rootNode, 0);
+
+	Compiler compiler = createCompiler();
+	compile(&compiler, &rootNode);
 	
 	return 0;
 }
