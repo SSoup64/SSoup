@@ -1,0 +1,24 @@
+The virtual machine that SSoup will run on is a stack based virtual machine.
+
+Bytecodes:
+NOP					- Placeholder instruction.
+PUSH_INT $x			- Pushes the integer x onto the stack.
+PUSH_FLOAT $x		- Pushes the float x onto the stack.
+PUSH_STRING $x		- Pushes the string x onto the stack.
+PUSH_MEM $x			- Pushes the value at address x onto the stack.
+
+POP $x				- Pops the top value on the stack and saves it at address x
+
+OP_PLUS				- Pops the 2 top values on the stack, applies the + operators to them and pushes the result to the stack.
+OP_STAR				- Pops the 2 top values on the stack, applies the * operators to them and pushes the result to the stack.
+OP_MINUS			- Pops the 2 top values on the stack, applies the - operators to them and pushes the result to the stack.
+OP_SLASH			- Pops the 2 top values on the stack, applies the / operators to them and pushes the result to the stack.
+
+EXIT				- Makes the program quit.
+
+DEBUG_PRINT			- Pops the top value on the stack and prints it to the console.
+
+
+
+
+More instructions will be added in the future.
