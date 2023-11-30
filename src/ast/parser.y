@@ -11,7 +11,8 @@
 
 	#define ALLOC \
 	(struct AstNode *) malloc(sizeof(struct AstNode)); \
-
+	
+	// Create variables
 	extern FILE *yyin;
 	struct AstNode rootNode;
 %}
@@ -165,12 +166,13 @@ void yyerror(const char *s)
 
 int main(int argc, char **argv)
 {
+	Compiler compiler = createCompiler();
+
 	yyin = fopen(argv[1], "r");
 	yyparse();
 	
 	traverseTree(rootNode, 0);
 
-	Compiler compiler = createCompiler();
 	compile(&compiler, &rootNode);
 	
 	return 0;

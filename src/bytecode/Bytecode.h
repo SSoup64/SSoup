@@ -3,7 +3,7 @@ enum Bytecode
 	I_NOP,
 	
 	I_PUSH_INT,
-	I_PUSH_FLOAT,
+	I_PUSH_DOUBLE,
 	I_PUSH_STRING,
 	I_PUSH_MEM,
 
