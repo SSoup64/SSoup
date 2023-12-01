@@ -60,6 +60,14 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 
 				printf("%lf", fVal);
 				break;
+
+			case (unsigned char) I_PUSH_STRING:
+				printf("PUSH_STRING    ");
+
+				while (compiler->bytecode[++i] != '\0')
+					putchar(compiler->bytecode[i]);
+
+				break;
 		}
 
 		putchar('\n');
