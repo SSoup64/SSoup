@@ -1,12 +1,18 @@
 %define parse.lac full
 %define parse.error detailed 
 %{
+	#define DEBUG	
+
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
 
 	#include "./AstNode.h"
+	
+#ifdef DEBUG
 	#include "./DEBUG_traverseTree.h"
+#endif
+
 	#include "../bytecode/Compile.h"
 
 	#define ALLOC \
@@ -170,10 +176,16 @@ int main(int argc, char **argv)
 
 	yyin = fopen(argv[1], "r");
 	yyparse();
-	
+
+#ifdef DEBUG
 	traverseTree(rootNode, 0);
+#endif
 
 	compile(&compiler, &rootNode);
+
+#ifdef DEBUG
+	DEBUG_compilerPrintBytecode(&compiler);
+#endif
 	
 	return 0;
 }

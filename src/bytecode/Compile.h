@@ -10,6 +10,7 @@ int compile(Compiler *compiler, AstNode *node)
 	// Define variables
 	long doubleBytes = 0;
 	double numberNodeVal = 0.0;
+	int i; // For indexing like in for loops
 
 	switch (node->type)
 	{
@@ -27,10 +28,24 @@ int compile(Compiler *compiler, AstNode *node)
 
 			// Add the bytes to the bytecode
 			for (int i = sizeof(long) - 1; i >= 0; i--)
-				compilerAppendBytecode(compiler, (unsigned char) (doubleBytes << 8 * i));
+				compilerAppendBytecode(compiler, (unsigned char) (doubleBytes >> 8 * i));
 			break;
 	
 		case TYPE_STR:
+			// Add I_PUSH_STR bytecode
+			compilerAppendBytecode(compiler, I_PUSH_STRING);
+
+			// Add the string itself to the bytecode
+			i = 0;
+
+			while (node->sVal[i] != '\0')
+			{
+				compilerAppendBytecode(compiler, node->sVal[i]);
+				i++;
+			}
+			
+			// Add the null terminator
+			compilerAppendBytecode(compiler, '\0');
 			break;
 
 		case TYPE_BINOP:
