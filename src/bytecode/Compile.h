@@ -82,6 +82,10 @@ int compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_DEBUG_PRINT:
+			// Compile the expression inside the print
+			compile(compiler, &node->childNodes[0]);
+
+			// Add I_DEBUG_PRINT bytecode
 			compilerAppendBytecode(compiler, I_DEBUG_PRINT);
 			break;
 	}

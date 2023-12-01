@@ -69,19 +69,23 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				break;
 
 			case (unsigned char) I_OP_PLUS:
-				printf("OP_PLUS\t");
+				printf("OP_PLUS");
 				break;
 
 			case (unsigned char) I_OP_MINUS:
-				printf("OP_MINUS\t");
+				printf("OP_MINUS");
 				break;
 
 			case (unsigned char) I_OP_STAR:
-				printf("OP_STAR\t");
+				printf("OP_STAR");
 				break;
 
 			case (unsigned char) I_OP_SLASH:
-				printf("OP_SLASH\t");
+				printf("OP_SLASH");
+				break;
+
+			case (unsigned char) I_DEBUG_PRINT:
+				printf("DEBUG_PRINT");
 				break;
 		}
 
