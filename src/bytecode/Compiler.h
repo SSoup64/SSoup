@@ -40,11 +40,11 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 		switch (compiler->bytecode[i])
 		{
 			case (unsigned char) I_NOP:
-				printf("NOP    ");
+				printf("NOP");
 				break;
 
 			case (unsigned char) I_PUSH_DOUBLE:
-				printf("PUSH_DOUBLE    ");
+				printf("PUSH_DOUBLE\t");
 
 				i++;
 
@@ -62,11 +62,26 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				break;
 
 			case (unsigned char) I_PUSH_STRING:
-				printf("PUSH_STRING    ");
+				printf("PUSH_STRING\t");
 
 				while (compiler->bytecode[++i] != '\0')
 					putchar(compiler->bytecode[i]);
+				break;
 
+			case (unsigned char) I_OP_PLUS:
+				printf("OP_PLUS\t");
+				break;
+
+			case (unsigned char) I_OP_MINUS:
+				printf("OP_MINUS\t");
+				break;
+
+			case (unsigned char) I_OP_STAR:
+				printf("OP_STAR\t");
+				break;
+
+			case (unsigned char) I_OP_SLASH:
+				printf("OP_SLASH\t");
 				break;
 		}
 

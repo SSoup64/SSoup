@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -49,6 +50,21 @@ int compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_BINOP:
+			// Compile the left side
+			compile(compiler, &node->childNodes[0]);
+
+			// Compile the right side
+			compile(compiler, &node->childNodes[1]);
+
+			// Add the binop to the bytecode
+			if (strcmp(node->sVal, "+") == 0)
+				compilerAppendBytecode(compiler, I_OP_PLUS);
+			else if (strcmp(node->sVal, "-") == 0)
+				compilerAppendBytecode(compiler, I_OP_MINUS);
+			else if (strcmp(node->sVal, "*") == 0)
+				compilerAppendBytecode(compiler, I_OP_STAR);
+			else if (strcmp(node->sVal, "/") == 0)
+				compilerAppendBytecode(compiler, I_OP_SLASH);
 			break;
 
 		case TYPE_ROOT:
