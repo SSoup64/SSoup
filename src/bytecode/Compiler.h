@@ -27,3 +27,42 @@ void compilerAppendBytecode(Compiler *compiler, unsigned char bytecode)
 
 	compiler->bytecode[compiler->bytecodeUsed++] = bytecode;
 }
+
+
+#ifdef DEBUG
+void DEBUG_compilerPrintBytecode(Compiler *compiler)
+{
+	double fVal = 0;
+	long bytesBuffer = 0;
+
+	for (int i = 0; i < compiler->bytecodeUsed; i++)
+	{
+		switch (compiler->bytecode[i])
+		{
+			case (unsigned char) I_NOP:
+				printf("NOP    ");
+				break;
+
+			case (unsigned char) I_PUSH_DOUBLE:
+				printf("PUSH_DOUBLE    ");
+
+				i++;
+
+				for (int j = i; j < i + sizeof(long); j++)
+				{
+					bytesBuffer <<= 8;
+					bytesBuffer += compiler->bytecode[j];
+				}
+
+				i += sizeof(long) - 1;
+
+				fVal = *((double *) &bytesBuffer);
+
+				printf("%lf", fVal);
+				break;
+		}
+
+		putchar('\n');
+	}
+}
+#endif

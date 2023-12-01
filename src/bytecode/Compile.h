@@ -27,7 +27,9 @@ int compile(Compiler *compiler, AstNode *node)
 
 			// Add the bytes to the bytecode
 			for (int i = sizeof(long) - 1; i >= 0; i--)
-				compilerAppendBytecode(compiler, (unsigned char) (doubleBytes << 8 * i));
+			{
+				compilerAppendBytecode(compiler, (unsigned char) (doubleBytes >> 8 * i));
+			}
 			break;
 	
 		case TYPE_STR:
