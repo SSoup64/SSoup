@@ -1,9 +1,12 @@
 #include <stdlib.h>
+#include "./Scope.h"
 
 typedef struct Compiler
 {
 	unsigned int bytecodeLength, bytecodeUsed;
 	unsigned char *bytecode;
+
+	Scope scope;
 } Compiler;
 
 Compiler createCompiler()
@@ -12,6 +15,8 @@ Compiler createCompiler()
 	{
 		1, 0,
 		(unsigned char *) malloc(sizeof(unsigned char)),
+
+		createScope(NULL, "root", SCOPE_ROOT)
 	};
 
 	return ret;
@@ -34,6 +39,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 {
 	double fVal = 0;
 	long bytesBuffer = 0;
+	unsigned int address = 0;
 
 	for (int i = 0; i < compiler->bytecodeUsed; i++)
 	{
@@ -46,9 +52,9 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 			case (unsigned char) I_PUSH_DOUBLE:
 				printf("PUSH_DOUBLE\t");
 
-				i++;
+				bytesBuffer = 0;
 
-				for (int j = i; j < i + sizeof(long); j++)
+				for (int j = ++i; j < i + sizeof(long); j++)
 				{
 					bytesBuffer <<= 8;
 					bytesBuffer += compiler->bytecode[j];
@@ -86,6 +92,38 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 
 			case (unsigned char) I_DEBUG_PRINT:
 				printf("DEBUG_PRINT");
+				break;
+
+			case (unsigned char) I_POP:
+				printf("POP\t\t");
+
+				address = 0;
+
+				for (int j = ++i; j < i + sizeof(unsigned int); j++)
+				{
+					address <<= 8;
+					address += compiler->bytecode[j];
+				}
+
+				i += sizeof(unsigned int) - 1;
+
+				printf("%u", address);
+				break;
+
+			case (unsigned char) I_PUSH_MEM:
+				printf("PUSH_MEM\t");
+
+				address = 0;
+
+				for (int j = ++i; j < i + sizeof(unsigned int); j++)
+				{
+					address <<= 8;
+					address += compiler->bytecode[j];
+				}
+
+				i += sizeof(unsigned int) - 1;
+
+				printf("%u", address);
 				break;
 		}
 

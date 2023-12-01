@@ -12,6 +12,7 @@ int compile(Compiler *compiler, AstNode *node)
 	long doubleBytes = 0;
 	double numberNodeVal = 0.0;
 	int i; // For indexing like in for loops
+	unsigned int address; // Mainly for variables and funcitons
 
 	switch (node->type)
 	{
@@ -73,12 +74,35 @@ int compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_IDENT:
+			// Add I_PUSH_MEM bytecode
+			compilerAppendBytecode(compiler, (unsigned char) I_PUSH_MEM);
+			
+			// Get the address of the variable
+			address = scopeGetVariable(&compiler->scope, node->sVal);
+
+			// Add the address of the variable to the bytecode
+			for (int i = sizeof(unsigned int) - 1; i >= 0; i--)
+				compilerAppendBytecode(compiler, (unsigned char) (address >> 8 * i));
 			break;
 
 		case TYPE_VAR_DECL:
+			// Add the variable to the scope
+			scopeAddVariable(&compiler->scope, node->childNodes[0].sVal);
 			break;
 
 		case TYPE_VAR_ASSIGN:
+			// Compile the RHS of the assignment
+			compile(compiler, &node->childNodes[1]);
+			
+			// Add I_POP bytecode
+			compilerAppendBytecode(compiler, (unsigned char) I_POP);
+
+			// Get the address of the variable to save to
+			address = scopeGetVariable(&compiler->scope, node->childNodes[0].sVal);
+
+			// Add the address of the variable to the bytecode
+			for (int i = sizeof(unsigned int) - 1; i >= 0; i--)
+				compilerAppendBytecode(compiler, (unsigned char) (address >> 8 * i));
 			break;
 
 		case TYPE_DEBUG_PRINT:
