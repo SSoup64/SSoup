@@ -1,3 +1,5 @@
+#pragma once
+
 enum Bytecode
 {
 	I_NOP,

@@ -1,10 +1,12 @@
+#pragma once
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "../ast/AstNode.h"
-#include "./Bytecode.h"
 #include "./Compiler.h"
+#include "./Bytecode.h"
 
 int compile(Compiler *compiler, AstNode *node)
 {

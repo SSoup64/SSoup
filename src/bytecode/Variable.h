@@ -1,4 +1,7 @@
+#pragma once
+
 #include <string.h>
+
 typedef struct Variable
 {
 	char *name;
