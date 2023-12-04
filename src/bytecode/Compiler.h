@@ -1,5 +1,10 @@
+#pragma once
+
+#include <stdio.h>
 #include <stdlib.h>
+
 #include "./Scope.h"
+#include "./Bytecode.h"
 
 typedef struct Compiler
 {
@@ -31,6 +36,16 @@ void compilerAppendBytecode(Compiler *compiler, unsigned char bytecode)
 	}
 
 	compiler->bytecode[compiler->bytecodeUsed++] = bytecode;
+}
+
+void compilerWriteToFile(Compiler *compiler, FILE *file)
+{
+	// TODO Add validation bytes 0x53 0x4F 0x55 0x50 (SOUP);
+	
+	for (int i = 0; i < compiler->bytecodeUsed; i++)
+		putc(compiler->bytecode[i], file);
+
+	putc((unsigned char) I_EXIT, file);
 }
 
 

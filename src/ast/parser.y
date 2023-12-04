@@ -183,6 +183,7 @@ void yyerror(const char *s)
 
 int main(int argc, char **argv)
 {
+	FILE *out = fopen("./out.spe", "wb");
 	Compiler compiler = createCompiler();
 
 	yyin = fopen(argv[1], "r");
@@ -199,6 +200,8 @@ int main(int argc, char **argv)
 	printf("\nBytecode:\n");
 	DEBUG_compilerPrintBytecode(&compiler);
 #endif
+
+	compilerWriteToFile(&compiler, out);
 	
 	return 0;
 }
