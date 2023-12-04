@@ -33,7 +33,7 @@
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
 %token <sVal>	TOK_LPAREN "(" TOK_RPAREN ")"
 
-%type <nodeVal> root stmt expr var_decl var_assign
+%type <nodeVal> root scope stmt expr var_decl var_assign
 
 %nonassoc		TOK_NUMBER TOK_STR TOK_IDENT TOK_SEMICOLONS
 %right			TOK_EQ
@@ -42,17 +42,28 @@
 %right			TOK_LPAREN TOK_RPAREN
 
 %%
-
-root:			stmt																				{
-																										rootNode = createNode(TYPE_ROOT, "", 1);
-
-																										nodeAddChild(&rootNode, *$1);
+root:			scope YYEOF																			{
+																										rootNode = *$1;
 																									}
 
-	|			root stmt																			{
-																										nodeChildResize(&rootNode, rootNode.childNodesLen + 1);
+scope:			stmt																				{
+																										AstNode ret = createNode(TYPE_SCOPE, "", 1);
 
-																										nodeAddChild(&rootNode, *$2);
+																										nodeAddChild(&ret, *$1);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			scope stmt																			{
+																										AstNode ret = *$1;
+
+																										nodeChildResize(&ret, ret.childNodesLen + 1);
+
+																										nodeAddChild(&ret, *$2);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
 																									}
 
 stmt:			var_decl ";"	 																	{
@@ -178,12 +189,14 @@ int main(int argc, char **argv)
 	yyparse();
 
 #ifdef DEBUG
+	printf("Parse tree:\n");
 	traverseTree(rootNode, 0);
 #endif
 
 	compile(&compiler, &rootNode);
 
 #ifdef DEBUG
+	printf("\nBytecode:\n");
 	DEBUG_compilerPrintBytecode(&compiler);
 #endif
 	

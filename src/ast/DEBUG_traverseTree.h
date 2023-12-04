@@ -7,8 +7,8 @@
 const char *NodeTypeToString(NodeType type)
 {
 	switch (type) {
-		case TYPE_ROOT:
-			return "Root";
+		case TYPE_SCOPE:
+			return "Scope";
 			break;
 		
 		case TYPE_BINOP:

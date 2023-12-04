@@ -65,7 +65,7 @@ int compile(Compiler *compiler, AstNode *node)
 				compilerAppendBytecode(compiler, I_OP_SLASH);
 			break;
 
-		case TYPE_ROOT:
+		case TYPE_SCOPE:
 			for (int i = 0; i < node->childNodesOccupied; i++)
 				compile(compiler, &node->childNodes[i]);
 			break;

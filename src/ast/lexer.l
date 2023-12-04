@@ -32,5 +32,6 @@
 
 int yywrap()
 {
+// <<EOF>>								{ return TOK_EOF; }
 	return 1;
 }
