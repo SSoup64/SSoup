@@ -9,7 +9,7 @@ typedef struct Frame
 {
 	struct Frame *lastFrame;
 
-	unsigned int objectsLength, objectsUsed;
+	unsigned int objectsLength;
 	SoupObjVar *objects;
 } Frame;
 
@@ -17,9 +17,10 @@ Frame createFrame(Frame *lastFrame)
 {
 	Frame ret =
 	{
+
 		lastFrame,
 
-		1, 0,
+		1,
 		(SoupObjVar *) malloc(sizeof(SoupObjVar))
 	};
 
@@ -28,8 +29,7 @@ Frame createFrame(Frame *lastFrame)
 
 SoupObjVar frameGetObjAt(Frame *frame, unsigned int index)
 {
-	if (index > frame->objectsUsed)
-		fprintf(stderr, "ERROR: Tried to get unitialized object ot something idk.");
+	// fprintf(stderr, "ERROR: Tried to get unitialized object ot something idk.");
 
 	return frame->objects[index];
 }
@@ -39,12 +39,14 @@ void frameSetObjAt(Frame *frame, unsigned int index, SoupObjVar obj)
 	// TODO:
 	// If the index causes there to be gaps in the arrays, fill them with a null value or something.
 	
-	if (index > frame->objectsLength)
+	if (index >= frame->objectsLength)
 	{
 		frame->objectsLength = (frame->objectsLength + 8 > index) ? frame->objectsLength + 8 : index;
-		frame->objects = (SoupObjVar *) realloc(frame->objects, frame->objectsLength);
+		frame->objects = (SoupObjVar *) realloc(frame->objects, frame->objectsLength * sizeof(SoupObjVar));
 	}
 
 	frame->objects[index] = obj;
 }
+
+
 

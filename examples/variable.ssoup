@@ -1,6 +1,6 @@
+let bar;
 let foo;
 
-let bar;
-
 foo = 14;
-bar = 8 * foo;
+
+print(foo);

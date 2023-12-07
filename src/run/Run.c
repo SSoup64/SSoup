@@ -7,7 +7,7 @@
 #include "./Stack.h"
 #include "SoupObjVar.h"
 
-#define ADVANCE thisChar = (unsigned char) getc(code)
+#define ADVANCE thisChar = fgetc(code)
 
 int main(int argc, char **argv)
 {
@@ -35,10 +35,10 @@ int main(int argc, char **argv)
 	// Open the file
 	assert(argc >= 2);
 	code = fopen(argv[1], "rb");
-
-	while ((ADVANCE) != (unsigned char) I_EXIT)
+	
+	for (;;)
 	{
-		// DEBUG_stackPrint(&stack);
+		ADVANCE;
 
 		switch (thisChar)
 		{
@@ -66,7 +66,9 @@ int main(int argc, char **argv)
 
 			case (unsigned char) I_PUSH_STRING:
 				while ((ADVANCE) != '\0')
+				{
 					putchar(thisChar);
+				}
 				break;
 
 			case (unsigned char) I_OP_PLUS:
@@ -82,9 +84,25 @@ int main(int argc, char **argv)
 				break;
 
 			case (unsigned char) I_DEBUG_PRINT:
+				objectBuffer = stackPop(&stack);
+
+				switch (objectBuffer.type)
+				{
+					case OBJ_TYPE_NONE:
+						break;
+
+					case OBJ_TYPE_FLOAT:
+						printf("%lf\n", objectBuffer.fVal);
+						break;
+
+					case OBJ_TYPE_STRING:
+						printf("%s\n", objectBuffer.sVal);
+						break;
+				}
 				break;
 
 			case (unsigned char) I_POP:
+				
 				address = 0;
 
 				for (int i = 0; i < sizeof(unsigned int); i++)
@@ -94,6 +112,10 @@ int main(int argc, char **argv)
 					address <<= 8;
 					address += thisChar;
 				}
+
+				objectBuffer = stackPop(&stack);
+
+				frameSetObjAt(&frame, address, objectBuffer);
 				break;
 
 			case (unsigned char) I_PUSH_MEM:
@@ -106,10 +128,18 @@ int main(int argc, char **argv)
 					address <<= 8;
 					address += thisChar;
 				}
+
+				objectBuffer = frameGetObjAt(&frame, address);
+				
+				stackPush(&stack, objectBuffer);
+				break;
+
+			case (unsigned char) I_EXIT:
+				exit(0);
 				break;
 
 			default:
-				fprintf(stderr, "ERROR: Encountered an unknown instruction.");
+				fprintf(stderr, "ERROR: Encountered an unknown instruction %X.\n", thisChar);
 				break;
 		}
 	}
