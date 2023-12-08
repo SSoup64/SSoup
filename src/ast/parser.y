@@ -27,15 +27,16 @@
 
 %start root
 
-%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" // Keywords
+%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" TOK_FUNC "func" // Keywords
 %token <sVal>	TOK_IDENT TOK_STR TOK_NUMBER
-%token <sVal>	TOK_SEMICOLONS ";"
+%token <sVal>	TOK_SEMICOLONS ";" TOK_COMMA ","
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
-%token <sVal>	TOK_LPAREN "(" TOK_RPAREN ")"
+%token <sVal>	TOK_LPAREN "(" TOK_RPAREN ")" TOK_LCPAREN "{" TOK_RCPAREN "}"
 
-%type <nodeVal> root scope stmt expr var_decl var_assign
+%type <nodeVal> root scope stmt expr var_decl var_assign func_decl params
 
 %nonassoc		TOK_NUMBER TOK_STR TOK_IDENT TOK_SEMICOLONS
+%left			TOK_COMMA
 %right			TOK_EQ
 %left			TOK_PLUS TOK_MINUS
 %left			TOK_STAR TOK_SLASH
@@ -46,16 +47,25 @@ root:			scope YYEOF																			{
 																										rootNode = *$1;
 																									}
 
-scope:			stmt																				{
-																										AstNode ret = createNode(TYPE_SCOPE, "", 1);
-
-																										nodeAddChild(&ret, *$1);
+scope:			%empty																				{
+																										AstNode ret = createNode(TYPE_SCOPE, "", 0);
 
 																										$$ = ALLOC;
 																										*$$ = ret;
 																									}
 
 	|			scope stmt																			{
+																										AstNode ret = *$1;
+
+																										nodeChildResize(&ret, ret.childNodesLen + 1);
+
+																										nodeAddChild(&ret, *$2);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			scope func_decl																		{
 																										AstNode ret = *$1;
 
 																										nodeChildResize(&ret, ret.childNodesLen + 1);
@@ -170,6 +180,49 @@ var_decl:		"let" TOK_IDENT																		{
 																										AstNode ret = createNode(TYPE_VAR_DECL, "", 1);
 
 																										nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($2), 0));
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+func_decl:		"func" TOK_IDENT "(" ")" "{" scope "}"												{
+																										AstNode	ret			= createNode(TYPE_FUNC_DECL, strdup($2), 2),
+																												emptyNode	= createNode(TYPE_EMPTY_NODE, "", 0);
+
+																										nodeAddChild(&ret, emptyNode);
+																										nodeAddChild(&ret, *$6);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+		|		"func" TOK_IDENT "(" params ")" "{" scope "}"										{
+																										AstNode	ret = createNode(TYPE_FUNC_DECL, strdup($2), 2);
+
+																										nodeAddChild(&ret, *$4);
+																										nodeAddChild(&ret, *$7);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+params:		TOK_IDENT																				{
+																										AstNode	ret		= createNode(TYPE_PARAMS, "", 1),
+																												iden	= createNode(TYPE_IDENT, strdup($1), 0);
+
+																										nodeAddChild(&ret, iden);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+		|	params "," TOK_IDENT																	{
+																										AstNode	ret		= *$1,
+																												iden	= createNode(TYPE_IDENT, strdup($3), 0);
+
+																										ret.sVal = "";
+
+																										nodeAddChild(&ret, iden);
 
 																										$$ = ALLOC;
 																										*$$ = ret;

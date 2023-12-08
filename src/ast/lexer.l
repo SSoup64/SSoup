@@ -5,6 +5,7 @@
 
 %%
 "let"								{ return TOK_LET; }
+"func"								{ return TOK_FUNC; }
 "print"								{ return TOK_DEBUG_PRINT; }
 
 \"([^"\\]|\\.)*\"					{	yylval.sVal = strdup(yytext); 
@@ -20,6 +21,9 @@
 "("									{ return TOK_LPAREN; }
 ")"									{ return TOK_RPAREN; }
 
+"\{"								{ return TOK_LCPAREN; }
+"\}"								{ return TOK_RCPAREN; }
+
 "+"									{ return TOK_PLUS; }
 "-"									{ return TOK_MINUS; }
 "*"									{ return TOK_STAR; }
@@ -28,6 +32,12 @@
 "="									{ return TOK_EQ; }
 
 ";"									{ return TOK_SEMICOLONS; }
+
+","									{ return TOK_COMMA; }
+
+[\t\n]								;
+" "									;
+.									printf("Unexpected character %s\n", yytext);
 %%
 
 int yywrap()

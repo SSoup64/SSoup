@@ -38,6 +38,18 @@ const char *NodeTypeToString(NodeType type)
 		case TYPE_DEBUG_PRINT:
 			return "Debug print";
 			break;
+
+		case TYPE_FUNC_DECL:
+			return "Function declaration";
+			break;
+		
+		case TYPE_EMPTY_NODE:
+			return "Empty";
+			break;
+
+		case TYPE_PARAMS:
+			return "Params";
+			break;
 	}
 }
 

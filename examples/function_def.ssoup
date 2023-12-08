@@ -1,0 +1,19 @@
+func printHello()
+{
+	print("Hello!");
+}
+
+func printSquare(x)
+{
+	print(x * x);
+}
+
+func printAddition(x, y)
+{
+	print(x + y);
+}
+
+func printQuadratic(a, b, c, x)
+{
+	print(a * x * x + b * x + c);
+}
