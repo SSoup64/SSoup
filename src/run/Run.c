@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../bytecode/Bytecode.h"
 #include "./Frame.h"
@@ -18,6 +19,20 @@ int main(int argc, char **argv)
 	long bytesBuffer = 0;
 
 	SoupObjVar objectBuffer = 
+	{
+		OBJ_TYPE_NONE,
+
+		0,
+		"",
+	},
+				oprandLeft =
+	{
+		OBJ_TYPE_NONE,
+
+		0,
+		"",
+	},
+				oprandRight =
 	{
 		OBJ_TYPE_NONE,
 
@@ -72,15 +87,132 @@ int main(int argc, char **argv)
 				break;
 
 			case (unsigned char) I_OP_PLUS:
+				// Hard coded for now
+				
+				// Pop of the two top values from the stack
+				oprandRight	= stackPop(&stack);
+				oprandLeft	= stackPop(&stack);
+
+				// Check if their type if the same, if not throw an error because casting doesn't exist yet
+				if (oprandLeft.type != oprandRight.type)
+				{
+					fprintf(stderr, "ERROR: Tried to use the + operator on different types.");
+					exit(1);
+				}
+
+				// Switch the type of the oprands
+				objectBuffer.type = oprandLeft.type;
+				switch (oprandLeft.type)
+				{
+					case OBJ_TYPE_FLOAT:
+						objectBuffer.fVal = oprandLeft.fVal + oprandRight.fVal;
+						break;
+
+					case OBJ_TYPE_STRING:
+						objectBuffer.sVal = (char *) malloc(sizeof(char) * (strlen(oprandLeft.sVal) + strlen(oprandRight.sVal) + 1));
+						objectBuffer.sVal = strcat(oprandLeft.sVal, oprandRight.sVal);
+						break;
+
+					default:
+						fprintf(stderr, "ERROR: Tried using + on an unsupported type.");
+						exit(1);
+						break;
+				}
+				
+				stackPush(&stack, objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_MINUS:
+				// Hard coded for now
+				
+				// Pop of the two top values from the stack
+				oprandRight	= stackPop(&stack);
+				oprandLeft	= stackPop(&stack);
+
+				// Check if their type if the same, if not throw an error because casting doesn't exist yet
+				if (oprandLeft.type != oprandRight.type)
+				{
+					fprintf(stderr, "ERROR: Tried to use the - operator on different types.");
+					exit(1);
+				}
+
+				// Switch the type of the oprands
+				objectBuffer.type = oprandLeft.type;
+				switch (oprandLeft.type)
+				{
+					case OBJ_TYPE_FLOAT:
+						objectBuffer.fVal = oprandLeft.fVal - oprandRight.fVal;
+						break;
+
+					default:
+						fprintf(stderr, "ERROR: Tried using - on an unsupported type.");
+						exit(1);
+						break;
+				}
+
+				stackPush(&stack, objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_STAR:
+				// Hard coded for now
+				
+				// Pop of the two top values from the stack
+				oprandRight	= stackPop(&stack);
+				oprandLeft	= stackPop(&stack);
+
+				// Check if their type if the same, if not throw an error because casting doesn't exist yet
+				if (oprandLeft.type != oprandRight.type)
+				{
+					fprintf(stderr, "ERROR: Tried to use the * operator on different types.");
+					exit(1);
+				}
+
+				// Switch the type of the oprands
+				objectBuffer.type = oprandLeft.type;
+				switch (oprandLeft.type)
+				{
+					case OBJ_TYPE_FLOAT:
+						objectBuffer.fVal = oprandLeft.fVal * oprandRight.fVal;
+						break;
+
+					default:
+						fprintf(stderr, "ERROR: Tried using * on an unsupported type.");
+						exit(1);
+						break;
+				}
+
+				stackPush(&stack, objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_SLASH:
+				// Hard coded for now
+				
+				// Pop of the two top values from the stack
+				oprandRight	= stackPop(&stack);
+				oprandLeft	= stackPop(&stack);
+
+				// Check if their type if the same, if not throw an error because casting doesn't exist yet
+				if (oprandLeft.type != oprandRight.type)
+				{
+					fprintf(stderr, "ERROR: Tried to use the / operator on different types.");
+					exit(1);
+				}
+
+				// Switch the type of the oprands
+				objectBuffer.type = oprandLeft.type;
+				switch (oprandLeft.type)
+				{
+					case OBJ_TYPE_FLOAT:
+						objectBuffer.fVal = oprandLeft.fVal / oprandRight.fVal;
+						break;
+
+					default:
+						fprintf(stderr, "ERROR: Tried using / on an unsupported type.");
+						exit(1);
+						break;
+				}
+
+				stackPush(&stack, objectBuffer);
 				break;
 
 			case (unsigned char) I_DEBUG_PRINT:
