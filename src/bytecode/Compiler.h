@@ -26,22 +26,17 @@ Compiler createCompiler()
 		(unsigned char *) malloc(sizeof(unsigned char)),
 	};
 	
-	// Create the root scope
-	
 	// Create the scopes array
 	ret.scopesLength = 1;
 
 	ret.scopes = (Scope *) malloc(ret.scopesLength * sizeof(Scope));
+	
+	// Create the root scope
 	createScopeNull(&ret.scopes[0], "root", SCOPE_ROOT);
-
-
-	// For some reason, whenever we pop the scopes stack and return to the root, for some reason, the name of 
-
-	ret.scopesUsed = 1;
-
+	
+	// Set the current scope to be the root scope
 	ret.scope = &ret.scopes[0];
-
-	// printf("%u", ret.scope.variablesLength);
+	ret.scopesUsed = 1;
 
 	return ret;
 }
@@ -71,7 +66,6 @@ void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 	if (compiler->scopesUsed >= compiler->scopesLength)
 	{
 		compiler->scopesLength += 8;
-
 		compiler->scopes = (Scope *) realloc(compiler->scopes, compiler->scopesLength * sizeof(Scope));
 
 		// The pointer compiler->scope needs to change it's value because realloc sometimes changes the address

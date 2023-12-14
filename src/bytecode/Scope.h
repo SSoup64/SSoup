@@ -1,5 +1,7 @@
 #pragma once
 
+#define SCOPE_VARIABLE_LENGTH_ADDER 8
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,7 +18,7 @@ typedef enum ScopeType
 // Basically stores things about the current scope like variables.
 typedef struct Scope
 {
-	// My index
+	// The index of this scope.
 	unsigned int scopeIndex;
 
 	// Previous scope index
@@ -37,8 +39,6 @@ typedef struct Scope
 
 void createScopeNull(Scope *newScope, char *name, ScopeType type)
 {
-	// newScope = (Scope *) malloc(sizeof(Scope));
-
 	newScope->scopeIndex = 0;
 	newScope->prevScopeIndex = 0;
 
@@ -71,7 +71,7 @@ void scopeAddVariable(Scope *scope, char *name)
 	
 	if (scope->variablesOccupied + 1 >= scope->variablesLength)
 	{
-		scope->variablesLength += 8; // TODO Add that to a const or something later
+		scope->variablesLength += SCOPE_VARIABLE_LENGTH_ADDER; // TODO Add that to a const or something later
 		scope->variables = (Variable *) realloc(scope->variables, sizeof(Variable) * scope->variablesLength);
 	}
 
