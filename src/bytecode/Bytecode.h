@@ -19,5 +19,11 @@ enum Bytecode
 	I_EXIT,
 
 	I_DEBUG_PRINT,
+	
+	I_JMP,
+	I_JMPF,
+
+	I_NPL,
+	I_PL_APPEND,
 };
 

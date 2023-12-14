@@ -6,7 +6,7 @@ all:
 	bison -o ./ast/parser.tab.c ./ast/parser.y -d
 	flex -o ./ast/lexer.yy.c ./ast/lexer.l
 
-	gcc -o ./output/ssoup_compile.out ./ast/lexer.yy.c ./ast/parser.tab.c
+	gcc -o ./output/ssoup_compile.out ./ast/lexer.yy.c ./ast/parser.tab.c -Wall
 
 	rm ./ast/lexer.yy.c
 	rm ./ast/parser.tab.c

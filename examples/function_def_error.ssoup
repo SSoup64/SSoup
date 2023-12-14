@@ -1,0 +1,14 @@
+func foo()
+{
+	func bar()
+	{
+		print("Hello World!");
+	}
+
+	print("test");
+}
+
+func buzz()
+{
+	print("testing is hard");
+}

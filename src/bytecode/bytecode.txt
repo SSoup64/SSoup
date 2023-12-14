@@ -7,7 +7,7 @@ PUSH_FLOAT $x		- Pushes the float x onto the stack.
 PUSH_STRING $x		- Pushes the string x onto the stack.
 PUSH_MEM $x			- Pushes the value at address x onto the stack.
 
-POP $x				- Pops the top value on the stack and saves it at address x
+POP $x				- Pops the top value on the stack and saves it at address x.
 
 OP_PLUS				- Pops the 2 top values on the stack, applies the + operators to them and pushes the result to the stack.
 OP_STAR				- Pops the 2 top values on the stack, applies the * operators to them and pushes the result to the stack.
@@ -18,7 +18,11 @@ EXIT				- Makes the program quit.
 
 DEBUG_PRINT			- Pops the top value on the stack and prints it to the console.
 
+JMP $x				- Jumps to the address x.
+JMPF &x				- Jumps to the address x as and act as if the jump is to a function.
 
+NPL					- Create a new parameter list.
+PL_APPEND			- Appends the top value on the stack to the parameter list.
 
 
 More instructions will be added in the future.

@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 	traverseTree(rootNode, 0);
 #endif
 
-	compile(&compiler, &rootNode);
+	startCompile(&compiler, &rootNode);
 
 #ifdef DEBUG
 	printf("\nBytecode:\n");

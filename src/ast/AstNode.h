@@ -7,6 +7,7 @@
 
 typedef enum NodeType
 {
+	TYPE_EMPTY_NODE,
 	TYPE_NUMBER,
 	TYPE_STR,
 	TYPE_BINOP,
@@ -16,7 +17,6 @@ typedef enum NodeType
 	TYPE_VAR_ASSIGN,
 	TYPE_DEBUG_PRINT,
 	TYPE_FUNC_DECL,
-	TYPE_EMPTY_NODE,
 	TYPE_PARAMS,
 } NodeType;
 

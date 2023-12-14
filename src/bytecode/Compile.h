@@ -7,17 +7,23 @@
 #include "../ast/AstNode.h"
 #include "./Compiler.h"
 #include "./Bytecode.h"
+#include "Scope.h"
 
-int compile(Compiler *compiler, AstNode *node)
+void compile(Compiler *compiler, AstNode *node)
 {
 	// Define variables
 	long doubleBytes = 0;
 	double numberNodeVal = 0.0;
-	int i = 0; // For indexing like in for loops
+
 	unsigned int address = 0; // Mainly for variables and funcitons
+
+	int i = 0; // For indexing like in for loops
 
 	switch (node->type)
 	{
+		case TYPE_EMPTY_NODE:
+			break;
+
 		case TYPE_NUMBER:
 			// TODO: Check whether the number is a double or an int
 
@@ -31,7 +37,7 @@ int compile(Compiler *compiler, AstNode *node)
 			doubleBytes = *((long *) &numberNodeVal);
 
 			// Add the bytes to the bytecode
-			for (int i = sizeof(long) - 1; i >= 0; i--)
+			for (i = sizeof(long) - 1; i >= 0; i--)
 				compilerAppendBytecode(compiler, (unsigned char) (doubleBytes >> 8 * i));
 			break;
 
@@ -68,7 +74,7 @@ int compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_SCOPE:
-			for (int i = 0; i < node->childNodesOccupied; i++)
+			for (i = 0; i < node->childNodesOccupied; i++)
 				compile(compiler, &node->childNodes[i]);
 			break;
 
@@ -77,16 +83,16 @@ int compile(Compiler *compiler, AstNode *node)
 			compilerAppendBytecode(compiler, (unsigned char) I_PUSH_MEM);
 
 			// Get the address of the variable
-			address = scopeGetVariable(&compiler->scope, node->sVal);
+			address = scopeGetVariable(compiler->scope, node->sVal);
 
 			// Add the address of the variable to the bytecode
-			for (int i = sizeof(unsigned int) - 1; i >= 0; i--)
+			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
 				compilerAppendBytecode(compiler, (unsigned char) (address >> 8 * i));
 			break;
 
 		case TYPE_VAR_DECL:
 			// Add the variable to the scope
-			scopeAddVariable(&compiler->scope, node->childNodes[0].sVal);
+			scopeAddVariable(compiler->scope, node->childNodes[0].sVal);
 			break;
 
 		case TYPE_VAR_ASSIGN:
@@ -97,10 +103,10 @@ int compile(Compiler *compiler, AstNode *node)
 			compilerAppendBytecode(compiler, (unsigned char) I_POP);
 
 			// Get the address of the variable to save to
-			address = scopeGetVariable(&compiler->scope, node->childNodes[0].sVal);
+			address = scopeGetVariable(compiler->scope, node->childNodes[0].sVal);
 
 			// Add the address of the variable to the bytecode
-			for (int i = sizeof(unsigned int) - 1; i >= 0; i--)
+			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
 				compilerAppendBytecode(compiler, (unsigned char) (address >> 8 * i));
 			break;
 
@@ -111,5 +117,56 @@ int compile(Compiler *compiler, AstNode *node)
 			// Add I_DEBUG_PRINT bytecode
 			compilerAppendBytecode(compiler, I_DEBUG_PRINT);
 			break;
+		
+		case TYPE_FUNC_DECL:
+			// Create the new scope
+			if (compiler->scope->type == SCOPE_FUNC)
+			{
+				printf("ERROR: Cannot create a function inside a function.\n");
+			}
+
+			// Create the name for the new scope
+			compilerAppendScope(compiler, strdup(node->sVal), SCOPE_FUNC);
+
+			// JMP statement so the code doesn't run when we start the program
+			compilerAppendBytecode(compiler, (unsigned char) I_JMP);
+			
+			// Save the current length of the bytecode so we could rewrite it later
+			address = compiler->bytecodeUsed;
+
+			for (i = 0; i < sizeof(unsigned int); i++)
+			{
+				compilerAppendBytecode(compiler, 0);
+			}
+			
+			// Compile the parameter list
+			compile(compiler, &node->childNodes[0]);
+
+			// Compile the code
+			compile(compiler, &node->childNodes[1]);
+
+			// Set the address to jump to
+			for (i = 0; i < sizeof(unsigned int); i++)
+			{
+				compilerSetBytecodeAt(compiler, compiler->bytecodeUsed >> (8 * i), address + sizeof(unsigned int) - i - 1);
+			}
+		
+			compilerPopScope(compiler);
+			break;
+
+		case TYPE_PARAMS:
+			for (i = 0; i < node->childNodesOccupied; i++)
+			{
+				scopeAddVariable(compiler->scope, strdup(node->childNodes[i].sVal));
+			}
+			break;
 	}
+}
+
+void startCompile(Compiler *compiler, AstNode *node)
+{
+	compile(compiler, node);
+	
+	compilerAppendBytecode(compiler, (unsigned char) I_EXIT);
+	// TODO: Check for a main function.
 }

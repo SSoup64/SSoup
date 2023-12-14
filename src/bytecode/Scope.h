@@ -16,8 +16,11 @@ typedef enum ScopeType
 // Basically stores things about the current scope like variables.
 typedef struct Scope
 {
-	// The previous scope
-	struct Scope *prevScope;
+	// My index
+	unsigned int scopeIndex;
+
+	// Previous scope index
+	unsigned int prevScopeIndex;
 
 	// The scope's name
 	char *scopeName;
@@ -32,18 +35,34 @@ typedef struct Scope
 	Variable *variables;
 } Scope;
 
-Scope createScope(Scope *oldScope, char *name, ScopeType type)
+void createScopeNull(Scope *newScope, char *name, ScopeType type)
 {
-	Scope ret =
-	{
-		oldScope,
-		strdup(name),
-		type,
-		1, 0,
-		(Variable *) malloc(sizeof(Variable))
-	};
+	// newScope = (Scope *) malloc(sizeof(Scope));
 
-	return ret;
+	newScope->scopeIndex = 0;
+	newScope->prevScopeIndex = 0;
+
+	newScope->scopeName = strdup(name);
+
+	newScope->type = type;
+
+	newScope->variablesLength = 1;
+	newScope->variablesOccupied = 1;
+	newScope->variables = (Variable *) malloc(sizeof(Variable));
+}
+
+void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScopeIndex, char *name, ScopeType type)
+{
+	newScope->scopeIndex = scopeIndex;
+	newScope->prevScopeIndex = prevScopeIndex;
+
+	newScope->scopeName = strdup(name);
+
+	newScope->type = type;
+
+	newScope->variablesLength = 1;
+	newScope->variablesOccupied = 0;
+	newScope->variables = (Variable *) malloc(sizeof(Variable));
 }
 
 void scopeAddVariable(Scope *scope, char *name)
@@ -72,3 +91,4 @@ unsigned int scopeGetVariable(Scope *scope, char *name)
 
 	exit(1);
 }
+
