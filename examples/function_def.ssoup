@@ -1,12 +1,18 @@
+let foo;
+
 func printHello()
 {
 	print("Hello!");
 }
 
+print("Testing testing 123");
+
 func printSquare(x)
 {
 	print(x * x);
 }
+
+foo = 1 + 2;
 
 func printAddition(x, y)
 {
@@ -17,3 +23,5 @@ func printQuadratic(a, b, c, x)
 {
 	print(a * x * x + b * x + c);
 }
+
+print(foo);

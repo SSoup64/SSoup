@@ -122,7 +122,12 @@ void compile(Compiler *compiler, AstNode *node)
 			// Create the new scope
 			if (compiler->scope->type == SCOPE_FUNC)
 			{
-				printf("ERROR: Cannot create a function inside a function.\n");
+				// Actually, idk if we want that to not be possible.
+				// It could lead to some good solutions for repetative code that only occurs in one other function.
+				// But I am getting ahead of myself.
+				// That may come later down the road.
+				fprintf(stderr, "ERROR: Cannot create a function inside a function.\n");
+				exit(1);
 			}
 
 			// Create the name for the new scope

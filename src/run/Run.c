@@ -14,9 +14,17 @@ int main(int argc, char **argv)
 {
 	// Define variables
 	FILE *code = NULL;
+	unsigned char thisChar = ' ';
+
+	int i = 0;
 
 	double fVal = 0;
 	long bytesBuffer = 0;
+
+	unsigned int address = 0;
+
+	unsigned int strBufferLen = 0;
+	char *strBuffer = (char *) malloc(sizeof(char));
 
 	SoupObjVar objectBuffer = 
 	{
@@ -40,10 +48,6 @@ int main(int argc, char **argv)
 		"",
 	};
 
-	unsigned int address = 0;
-
-	unsigned char thisChar = ' ';
-
 	Frame frame = createFrame(NULL);
 	Stack stack = createStack();
 
@@ -63,7 +67,7 @@ int main(int argc, char **argv)
 			case (unsigned char) I_PUSH_DOUBLE:
 				bytesBuffer = 0;
 
-				for (int i = 0; i < sizeof(long); i++)
+				for (i = 0; i < sizeof(long); i++)
 				{
 					ADVANCE;
 
@@ -80,10 +84,32 @@ int main(int argc, char **argv)
 				break;
 
 			case (unsigned char) I_PUSH_STRING:
+				// Free the memory in the string buffer
+				free(strBuffer);
+				strBufferLen = 0;
+
+				// Find the length of the string
 				while ((ADVANCE) != '\0')
 				{
-					putchar(thisChar);
+					strBufferLen++;
 				}
+
+				// Allocate memory
+				strBuffer = (char *) malloc((strBufferLen + 1) * sizeof(char));
+
+				// Go back and read the characters into strBuffer
+				fseek(code, -((long) strBufferLen + 1), SEEK_CUR);
+				
+				for (i = 0; i < strBufferLen + 1; i++)
+				{
+					ADVANCE;
+					strBuffer[i] = thisChar;
+				}
+				
+				objectBuffer.type = OBJ_TYPE_STRING;
+				objectBuffer.sVal = strdup(strBuffer);
+
+				stackPush(&stack, objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_PLUS:
@@ -231,13 +257,14 @@ int main(int argc, char **argv)
 						printf("%s\n", objectBuffer.sVal);
 						break;
 				}
+
 				break;
 
 			case (unsigned char) I_POP:
 				
 				address = 0;
 
-				for (int i = 0; i < sizeof(unsigned int); i++)
+				for (i = 0; i < sizeof(unsigned int); i++)
 				{
 					ADVANCE;
 
@@ -253,7 +280,7 @@ int main(int argc, char **argv)
 			case (unsigned char) I_PUSH_MEM:
 				address = 0;
 
-				for (int i = 0; i < sizeof(unsigned int); i++)
+				for (i = 0; i < sizeof(unsigned int); i++)
 				{
 					ADVANCE;
 
@@ -268,6 +295,22 @@ int main(int argc, char **argv)
 
 			case (unsigned char) I_EXIT:
 				exit(0);
+				break;
+
+			case (unsigned char) I_JMP:
+				// Get the address
+				address = 0;
+
+				for (i = 0; i < sizeof(unsigned int); i++)
+				{
+					ADVANCE;
+
+					address <<= 8;
+					address += thisChar;
+				}
+
+				// Jump to the address
+				fseek(code, (long) address, SEEK_SET);
 				break;
 
 			default:

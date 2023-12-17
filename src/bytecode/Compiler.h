@@ -85,7 +85,6 @@ void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 // TODO: Maybe make this an inline function at some later point for optimization
 void compilerPopScope(Compiler *compiler)
 {
-	printf("%s, %d\n", compiler->scope->scopeName, compiler->scope->prevScopeIndex);
 	compiler->scope = &compiler->scopes[compiler->scope->prevScopeIndex];
 }
 

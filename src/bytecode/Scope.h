@@ -47,7 +47,7 @@ void createScopeNull(Scope *newScope, char *name, ScopeType type)
 	newScope->type = type;
 
 	newScope->variablesLength = 1;
-	newScope->variablesOccupied = 1;
+	newScope->variablesOccupied = 0;
 	newScope->variables = (Variable *) malloc(sizeof(Variable));
 }
 
@@ -71,7 +71,7 @@ void scopeAddVariable(Scope *scope, char *name)
 	
 	if (scope->variablesOccupied + 1 >= scope->variablesLength)
 	{
-		scope->variablesLength += SCOPE_VARIABLE_LENGTH_ADDER; // TODO Add that to a const or something later
+		scope->variablesLength += SCOPE_VARIABLE_LENGTH_ADDER;
 		scope->variables = (Variable *) realloc(scope->variables, sizeof(Variable) * scope->variablesLength);
 	}
 
@@ -82,7 +82,6 @@ unsigned int scopeGetVariable(Scope *scope, char *name)
 {
 	for (unsigned int i = 0; i < scope->variablesOccupied; i++)
 	{
-		// printf("%s\n", scope->variables[i].name);
 		if (strcmp(scope->variables[i].name, name) == 0)
 			return i;
 	}
