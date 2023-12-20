@@ -3,4 +3,11 @@ func printHi()
 	print("Hello World!");
 }
 
-print(1 + 1);
+func foo()
+{
+	print("foo");
+}
+
+foo();
+printHi();
+

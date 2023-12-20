@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	unsigned int strBufferLen = 0;
 	char *strBuffer = (char *) malloc(sizeof(char));
 
-	SoupObjVar objectBuffer = 
+	SoupObjVar	objectBuffer = 
 	{
 		OBJ_TYPE_NONE,
 

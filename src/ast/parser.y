@@ -33,7 +33,7 @@
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
 %token <sVal>	TOK_LPAREN "(" TOK_RPAREN ")" TOK_LCPAREN "{" TOK_RCPAREN "}"
 
-%type <nodeVal> root scope stmt expr var_decl var_assign func_decl params
+%type <nodeVal> root scope stmt expr var_decl var_assign func_decl params exprs
 
 %nonassoc		TOK_NUMBER TOK_STR TOK_IDENT TOK_SEMICOLONS
 %left			TOK_COMMA
@@ -100,7 +100,26 @@ stmt:			var_decl ";"	 																	{
 																										*$$ = ret;
 																									}
 
-expr:			expr "*" expr																		{
+expr:			TOK_IDENT "(" ")"																	{
+																										AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1),
+																												emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
+
+																										nodeAddChild(&ret, emptyNode);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			TOK_IDENT "(" exprs ")"																{
+																										AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1);
+
+																										nodeAddChild(&ret, *$3);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			expr "*" expr																		{
 																										AstNode ret = createNode(TYPE_BINOP, "*", 2);
 
 																										nodeAddChild(&ret, *$1);
@@ -219,10 +238,28 @@ params:		TOK_IDENT																				{
 		|	params "," TOK_IDENT																	{
 																										AstNode	ret		= *$1,
 																												iden	= createNode(TYPE_IDENT, strdup($3), 0);
-
-																										ret.sVal = "";
-
+																										
+																										nodeChildResize(&ret, ret.childNodesLen + 1);
 																										nodeAddChild(&ret, iden);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+exprs:		expr																					{
+																										AstNode ret = createNode(TYPE_EXPRS, "", 1);
+
+																										nodeAddChild(&ret, *$1);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+	 
+	 |		exprs "," expr																			{
+																										AstNode	ret	= *$1;
+
+																										nodeChildResize(&ret, ret.childNodesLen + 1);
+																										nodeAddChild(&ret, *$3);
 
 																										$$ = ALLOC;
 																										*$$ = ret;
@@ -250,6 +287,9 @@ int main(int argc, char **argv)
 	startCompile(&compiler, &rootNode);
 
 #ifdef DEBUG
+	printf("\nScopes:\n");
+	DEBUG_compilerPrintScopes(&compiler);
+
 	printf("\nBytecode:\n");
 	DEBUG_compilerPrintBytecode(&compiler);
 #endif

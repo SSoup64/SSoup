@@ -50,7 +50,17 @@ const char *NodeTypeToString(NodeType type)
 		case TYPE_PARAMS:
 			return "Params";
 			break;
+		
+		case TYPE_FUNC_CALL:
+			return "Function call";
+			break;
+
+		case TYPE_EXPRS:
+			return "Expressions";
+			break;
 	}
+
+	return "Unknown type";
 }
 
 void insertTabs(int tabs)

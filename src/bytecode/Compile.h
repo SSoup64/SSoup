@@ -7,6 +7,7 @@
 #include "../ast/AstNode.h"
 #include "./Compiler.h"
 #include "./Bytecode.h"
+#include "./Func.h"
 #include "Scope.h"
 
 void compile(Compiler *compiler, AstNode *node)
@@ -18,6 +19,8 @@ void compile(Compiler *compiler, AstNode *node)
 	unsigned int address = 0; // Mainly for variables and funcitons
 
 	int i = 0; // For indexing like in for loops
+
+	Func curFunc;
 
 	switch (node->type)
 	{
@@ -38,7 +41,9 @@ void compile(Compiler *compiler, AstNode *node)
 
 			// Add the bytes to the bytecode
 			for (i = sizeof(long) - 1; i >= 0; i--)
+			{
 				compilerAppendBytecode(compiler, (unsigned char) (doubleBytes >> 8 * i));
+			}
 			break;
 
 		case TYPE_STR:
@@ -49,7 +54,9 @@ void compile(Compiler *compiler, AstNode *node)
 			i = 0;
 
 			while (node->sVal[i] != '\0')
+			{
 				compilerAppendBytecode(compiler, node->sVal[i++]);
+			}
 
 			// Add the null terminator
 			compilerAppendBytecode(compiler, '\0');
@@ -63,19 +70,30 @@ void compile(Compiler *compiler, AstNode *node)
 			compile(compiler, &node->childNodes[1]);
 
 			// Add the binop to the bytecode
+			// Also I just wanted to say that this code is really really REALLY fucking bad but I'll improve it later on because there are just 4 operators
 			if (strcmp(node->sVal, "+") == 0)
+			{
 				compilerAppendBytecode(compiler, I_OP_PLUS);
+			}
 			else if (strcmp(node->sVal, "-") == 0)
+			{
 				compilerAppendBytecode(compiler, I_OP_MINUS);
+			}
 			else if (strcmp(node->sVal, "*") == 0)
+			{
 				compilerAppendBytecode(compiler, I_OP_STAR);
+			}
 			else if (strcmp(node->sVal, "/") == 0)
+			{
 				compilerAppendBytecode(compiler, I_OP_SLASH);
+			}
 			break;
 
 		case TYPE_SCOPE:
 			for (i = 0; i < node->childNodesOccupied; i++)
+			{
 				compile(compiler, &node->childNodes[i]);
+			}
 			break;
 
 		case TYPE_IDENT:
@@ -87,7 +105,9 @@ void compile(Compiler *compiler, AstNode *node)
 
 			// Add the address of the variable to the bytecode
 			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
+			{
 				compilerAppendBytecode(compiler, (unsigned char) (address >> 8 * i));
+			}
 			break;
 
 		case TYPE_VAR_DECL:
@@ -107,7 +127,9 @@ void compile(Compiler *compiler, AstNode *node)
 
 			// Add the address of the variable to the bytecode
 			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
+			{
 				compilerAppendBytecode(compiler, (unsigned char) (address >> 8 * i));
+			}
 			break;
 
 		case TYPE_DEBUG_PRINT:
@@ -144,11 +166,17 @@ void compile(Compiler *compiler, AstNode *node)
 				compilerAppendBytecode(compiler, 0);
 			}
 			
+			// Set the scopes current function
+			compilerSetCurScopeFunc(compiler, createFunc(compiler->bytecodeUsed, node->childNodes[0].childNodesOccupied));
+			
 			// Compile the parameter list
 			compile(compiler, &node->childNodes[0]);
 
 			// Compile the code
 			compile(compiler, &node->childNodes[1]);
+
+			// Add a default return
+			compilerAppendBytecode(compiler, (unsigned char) I_RETURN);
 
 			// Set the address to jump to
 			for (i = 0; i < sizeof(unsigned int); i++)
@@ -164,6 +192,23 @@ void compile(Compiler *compiler, AstNode *node)
 			{
 				scopeAddVariable(compiler->scope, strdup(node->childNodes[i].sVal));
 			}
+			break;
+
+		case TYPE_FUNC_CALL:
+			// Find the address of the function
+			address = compilerFindFuncAddress(compiler, strdup(node->sVal), 0 /*TODO implement params*/);
+
+			// Add a JMPF instruction
+			compilerAppendBytecode(compiler, (unsigned char) I_JMPF);
+
+			// Add the address of the function to the bytecode
+			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
+			{
+				compilerAppendBytecode(compiler, (unsigned char) (address >> 8 * i));
+			}
+			break;
+
+		case TYPE_EXPRS:
 			break;
 	}
 }

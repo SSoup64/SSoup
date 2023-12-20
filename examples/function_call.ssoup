@@ -1,0 +1,6 @@
+func print_addition(x, y)
+{
+	print(x + y);
+}
+
+print_addition(10, 5);

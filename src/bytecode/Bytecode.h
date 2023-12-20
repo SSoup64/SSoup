@@ -25,5 +25,7 @@ enum Bytecode
 
 	I_NPL,
 	I_PL_APPEND,
+
+	I_RETURN,
 };
 

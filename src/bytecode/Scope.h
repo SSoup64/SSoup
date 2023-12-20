@@ -1,12 +1,14 @@
 #pragma once
 
 #define SCOPE_VARIABLE_LENGTH_ADDER 8
+#define SCOPE_FUNC_LENGTH_ADDER 8
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "./Variable.h"
+#include "./Func.h"
 
 typedef enum ScopeType
 {
@@ -24,8 +26,9 @@ typedef struct Scope
 	// Previous scope index
 	unsigned int prevScopeIndex;
 
-	// The scope's name
+	// The scope's name and its path
 	char *scopeName;
+	char *scopePath;
 
 	// The type of the scope
 	// This is needed because the different scopes may act differently
@@ -35,28 +38,46 @@ typedef struct Scope
 	// The variables in the scope.
 	unsigned int variablesLength, variablesOccupied;
 	Variable *variables;
+	
+	// The scope indices of the functions in the scope
+	unsigned int funcsLength, funcsOccupied;
+	unsigned int *funcsIndices;
+
+	// SCOPE_FUNC specific variable address.
+	Func func;
 } Scope;
 
 void createScopeNull(Scope *newScope, char *name, ScopeType type)
 {
+	// Scope indices
 	newScope->scopeIndex = 0;
 	newScope->prevScopeIndex = 0;
-
+	
+	// The name of the scope
 	newScope->scopeName = strdup(name);
-
+	newScope->scopePath = "";
+	
+	// The type of the scope
 	newScope->type = type;
 
+	// The variables
 	newScope->variablesLength = 1;
 	newScope->variablesOccupied = 0;
 	newScope->variables = (Variable *) malloc(sizeof(Variable));
+	
+	// The functions
+	newScope->funcsLength = 1;
+	newScope->funcsOccupied = 0;
+	newScope->funcsIndices = (unsigned int *) malloc(sizeof(unsigned int));
 }
 
-void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScopeIndex, char *name, ScopeType type)
+void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScopeIndex, char *name, char *path, ScopeType type)
 {
 	newScope->scopeIndex = scopeIndex;
 	newScope->prevScopeIndex = prevScopeIndex;
 
 	newScope->scopeName = strdup(name);
+	newScope->scopePath = strdup(path);
 
 	newScope->type = type;
 
@@ -91,3 +112,13 @@ unsigned int scopeGetVariable(Scope *scope, char *name)
 	exit(1);
 }
 
+void scopeAddFuncIndex(Scope *scope, unsigned int index)
+{
+	if (scope->funcsOccupied + 1 >= scope->funcsLength)
+	{
+		scope->funcsLength += SCOPE_FUNC_LENGTH_ADDER;
+		scope->funcsIndices = (unsigned int *) realloc(scope->funcsIndices, sizeof(unsigned int) * scope->funcsLength);
+	}
+
+	scope->funcsIndices[scope->funcsOccupied++] = index;
+}

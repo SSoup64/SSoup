@@ -18,6 +18,8 @@ typedef enum NodeType
 	TYPE_DEBUG_PRINT,
 	TYPE_FUNC_DECL,
 	TYPE_PARAMS,
+	TYPE_FUNC_CALL,
+	TYPE_EXPRS,
 } NodeType;
 
 typedef struct AstNode

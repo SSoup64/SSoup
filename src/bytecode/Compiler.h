@@ -56,11 +56,11 @@ void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 	*/
 
 	// Create the scope's name
-	char *newScopeName = (char *) malloc(sizeof(char) * (strlen(compiler->scope->scopeName) + strlen(scopeName) + 2)); // The plus 2 is for the | and the null terminator
+	char *scopePath = (char *) malloc(sizeof(char) * (strlen(compiler->scope->scopeName) + strlen(compiler->scope->scopePath) + 2)); // The plus 2 is for the | and the null terminator
 	
-	strcpy(newScopeName, strdup(compiler->scope->scopeName));
-	strcat(newScopeName, "|");
-	strcat(newScopeName, strdup(scopeName));
+	strcpy(scopePath, strdup(compiler->scope->scopePath));
+	strcat(scopePath, strdup(compiler->scope->scopeName));
+	strcat(scopePath, "|");
 
 	// Append the new scope to the array of scopes
 	if (compiler->scopesUsed >= compiler->scopesLength)
@@ -75,7 +75,7 @@ void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 	}
 
 	// Create the new scope
-	createScope(&newScope, compiler->scopesUsed, compiler->scope->scopeIndex, newScopeName, type);
+	createScope(&newScope, compiler->scopesUsed, compiler->scope->scopeIndex, strdup(scopeName), scopePath, type);
 	
 	// Append the new scope
 	compiler->scopes[compiler->scopesUsed++] = newScope;
@@ -112,7 +112,59 @@ void compilerWriteToFile(Compiler *compiler, FILE *file)
 		putc(compiler->bytecode[i], file);
 }
 
+void compilerSetCurScopeFunc(Compiler *compiler, Func func)
+{
+	// Make sure that the current scope is infact a function scope
+	if (compiler->scope->type != SCOPE_FUNC)
+	{
+		fprintf(stderr, "ERROR: Tried to add a func descriptor to a scope that is not of type SCOPE_FUNC.\n");
+		exit(1);
+	}
+	
+	// Set the scope's func attr to the func given
+	compiler->scope->func = func;
+	
+	// Add this scope's index to its parent node's funcsIndices array
+	scopeAddFuncIndex(&compiler->scopes[compiler->scope->prevScopeIndex], compiler->scope->scopeIndex);
+}
+
+unsigned int compilerFindFuncAddress(Compiler *compiler, char *name, unsigned int params)
+{
+	Scope *curScope = compiler->scope;
+	unsigned int funcIndex = 0;
+
+	do
+	{
+		for (int i = 0; i < curScope->funcsOccupied; i++)
+		{
+			funcIndex = compiler->scope->funcsIndices[i];
+
+			// printf("%s\n", compiler->scopes[funcIndex].scopeName);
+
+			if (SCOPE_FUNC == compiler->scopes[funcIndex].type && strcmp(compiler->scopes[funcIndex].scopeName, name) == 0)
+			{
+				return compiler->scopes[funcIndex].func.address;
+			}
+		}
+
+		// Set the current scope to the parent of the current scope
+		curScope = &compiler->scopes[curScope->prevScopeIndex];
+	}
+	while (strcmp(curScope->scopeName, "root") != 0);
+
+	fprintf(stderr, "ERROR: Could not find function %s.\n", name);
+	exit(1);
+}
+
 #ifdef DEBUG
+void DEBUG_compilerPrintScopes(Compiler *compiler)
+{
+	for (int i = 0; i < compiler->scopesUsed; i++)
+	{
+		printf("%s%s\n", compiler->scopes[i].scopePath, compiler->scopes[i].scopeName);
+	}
+}
+
 void DEBUG_compilerPrintBytecode(Compiler *compiler)
 {
 	double fVal = 0;
@@ -224,6 +276,26 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				i += sizeof(unsigned int) - 1;
 
 				printf("%u", address);
+				break;
+
+			case (unsigned char) I_JMPF:
+				printf("JMPF\t\t");
+
+				address = 0;
+
+				for (int j = ++i; j < i + sizeof(unsigned int); j++)
+				{
+					address <<= 8;
+					address += compiler->bytecode[j];
+				}
+
+				i += sizeof(unsigned int) - 1;
+
+				printf("%u", address);
+				break;
+
+			case (unsigned char) I_RETURN:
+				printf("RETURN\t\t");
 				break;
 		}
 
