@@ -194,7 +194,13 @@ void compile(Compiler *compiler, AstNode *node)
 
 		case TYPE_FUNC_CALL:
 			// Find the address of the function
-			address = compilerFindFuncAddress(compiler, compiler->scope, strdup(node->sVal), 0 /*TODO implement params*/);
+			address = compilerFindFuncAddress(compiler, compiler->scope, strdup(node->sVal), node->childNodes[0].childNodesOccupied);
+
+			// Create a new parameter list
+			compilerAppendBytecode(compiler, (unsigned char) I_NPL);
+
+			// Compile the expressions
+			compile(compiler, &node->childNodes[0]);
 
 			// Add a JMPF instruction
 			compilerAppendBytecode(compiler, (unsigned char) I_JMPF);
@@ -207,6 +213,12 @@ void compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_EXPRS:
+			// TODO: Make the expressions compile differently depending whether they are compiled for function calls or something else.
+			for (i = 0; i < node->childNodesOccupied; i++)
+			{
+				compile(compiler, &node->childNodes[i]);
+				compilerAppendBytecode(compiler, (unsigned char) I_PL_APPEND);
+			}
 			break;
 	}
 }

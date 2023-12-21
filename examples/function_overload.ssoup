@@ -1,0 +1,14 @@
+func printSquares(a)
+{
+	print(a * a);
+}
+
+func printSquares(a, b)
+{
+	print(a * a);
+	print(b * b);
+}
+
+printSquares(1);
+printSquares(2, 1);
+printSquares(3);

@@ -56,11 +56,12 @@ void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 	*/
 
 	// Create the scope's name
-	char *scopePath = (char *) malloc(sizeof(char) * (strlen(compiler->scope->scopeName) + strlen(compiler->scope->scopePath) + 2)); // The plus 2 is for the | and the null terminator
+	// The plus 2 is for the : and the null terminator
+	char *scopePath = (char *) malloc(sizeof(char) * (strlen(compiler->scope->scopeName) + strlen(compiler->scope->scopePath) + 2));
 	
 	strcpy(scopePath, strdup(compiler->scope->scopePath));
 	strcat(scopePath, strdup(compiler->scope->scopeName));
-	strcat(scopePath, "|");
+	strcat(scopePath, ":");
 
 	// Append the new scope to the array of scopes
 	if (compiler->scopesUsed >= compiler->scopesLength)
@@ -136,7 +137,7 @@ unsigned int compilerFindFuncAddress(Compiler *compiler, Scope *curScope, char *
 	{
 		funcIndex = curScope->funcsIndices[i];
 
-		if (SCOPE_FUNC == compiler->scopes[funcIndex].type && strcmp(compiler->scopes[funcIndex].scopeName, name) == 0)
+		if (SCOPE_FUNC == compiler->scopes[funcIndex].type && strcmp(compiler->scopes[funcIndex].scopeName, name) == 0 && params == compiler->scopes[funcIndex].func.paramsLen)
 		{
 			return compiler->scopes[funcIndex].func.address;
 		}
@@ -157,7 +158,15 @@ void DEBUG_compilerPrintScopes(Compiler *compiler)
 {
 	for (int i = 0; i < compiler->scopesUsed; i++)
 	{
-		printf("%s%s\n", compiler->scopes[i].scopePath, compiler->scopes[i].scopeName);
+		printf("%s%s", compiler->scopes[i].scopePath, compiler->scopes[i].scopeName);
+
+		// If the scope is a function, then print the number of arguments it takes
+		if (compiler->scopes[i].type == SCOPE_FUNC)
+		{
+			printf("(%u)", compiler->scopes[i].func.paramsLen);
+		}
+
+		putchar('\n');
 	}
 }
 
@@ -292,6 +301,14 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 
 			case (unsigned char) I_RETURN:
 				printf("RETURN\t\t");
+				break;
+
+			case (unsigned char) I_NPL:
+				printf("NPL");
+				break;
+
+			case (unsigned char) I_PL_APPEND:
+				printf("PL_APPEND");
 				break;
 		}
 
