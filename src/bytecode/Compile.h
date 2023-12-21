@@ -20,8 +20,6 @@ void compile(Compiler *compiler, AstNode *node)
 
 	int i = 0; // For indexing like in for loops
 
-	Func curFunc;
-
 	switch (node->type)
 	{
 		case TYPE_EMPTY_NODE:
@@ -165,10 +163,10 @@ void compile(Compiler *compiler, AstNode *node)
 			{
 				compilerAppendBytecode(compiler, 0);
 			}
-			
+
 			// Set the scopes current function
 			compilerSetCurScopeFunc(compiler, createFunc(compiler->bytecodeUsed, node->childNodes[0].childNodesOccupied));
-			
+
 			// Compile the parameter list
 			compile(compiler, &node->childNodes[0]);
 
@@ -183,7 +181,7 @@ void compile(Compiler *compiler, AstNode *node)
 			{
 				compilerSetBytecodeAt(compiler, compiler->bytecodeUsed >> (8 * i), address + sizeof(unsigned int) - i - 1);
 			}
-		
+
 			compilerPopScope(compiler);
 			break;
 
@@ -196,7 +194,7 @@ void compile(Compiler *compiler, AstNode *node)
 
 		case TYPE_FUNC_CALL:
 			// Find the address of the function
-			address = compilerFindFuncAddress(compiler, strdup(node->sVal), 0 /*TODO implement params*/);
+			address = compilerFindFuncAddress(compiler, compiler->scope, strdup(node->sVal), 0 /*TODO implement params*/);
 
 			// Add a JMPF instruction
 			compilerAppendBytecode(compiler, (unsigned char) I_JMPF);

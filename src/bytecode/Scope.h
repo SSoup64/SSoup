@@ -84,6 +84,10 @@ void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScop
 	newScope->variablesLength = 1;
 	newScope->variablesOccupied = 0;
 	newScope->variables = (Variable *) malloc(sizeof(Variable));
+
+	newScope->funcsLength = 1;
+	newScope->funcsOccupied = 0;
+	newScope->funcsIndices = (unsigned int *) malloc(sizeof(unsigned int));
 }
 
 void scopeAddVariable(Scope *scope, char *name)

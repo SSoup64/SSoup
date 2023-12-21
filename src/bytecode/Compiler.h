@@ -128,29 +128,25 @@ void compilerSetCurScopeFunc(Compiler *compiler, Func func)
 	scopeAddFuncIndex(&compiler->scopes[compiler->scope->prevScopeIndex], compiler->scope->scopeIndex);
 }
 
-unsigned int compilerFindFuncAddress(Compiler *compiler, char *name, unsigned int params)
+unsigned int compilerFindFuncAddress(Compiler *compiler, Scope *curScope, char *name, unsigned int params)
 {
-	Scope *curScope = compiler->scope;
 	unsigned int funcIndex = 0;
-
-	do
+	
+	for (int i = 0; i < curScope->funcsOccupied; i++)
 	{
-		for (int i = 0; i < curScope->funcsOccupied; i++)
+		funcIndex = curScope->funcsIndices[i];
+
+		if (SCOPE_FUNC == compiler->scopes[funcIndex].type && strcmp(compiler->scopes[funcIndex].scopeName, name) == 0)
 		{
-			funcIndex = compiler->scope->funcsIndices[i];
-
-			// printf("%s\n", compiler->scopes[funcIndex].scopeName);
-
-			if (SCOPE_FUNC == compiler->scopes[funcIndex].type && strcmp(compiler->scopes[funcIndex].scopeName, name) == 0)
-			{
-				return compiler->scopes[funcIndex].func.address;
-			}
+			return compiler->scopes[funcIndex].func.address;
 		}
-
-		// Set the current scope to the parent of the current scope
-		curScope = &compiler->scopes[curScope->prevScopeIndex];
 	}
-	while (strcmp(curScope->scopeName, "root") != 0);
+
+	// Set the current scope to the parent of the current scope
+	if (curScope->scopeIndex != 0)
+	{
+		return compilerFindFuncAddress(compiler, &compiler->scopes[curScope->prevScopeIndex], strdup(name), params);
+	}
 
 	fprintf(stderr, "ERROR: Could not find function %s.\n", name);
 	exit(1);
