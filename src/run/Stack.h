@@ -50,6 +50,7 @@ SoupObjVar stackPop(Stack *stack)
 	return ret;
 }
 
+#ifdef DEBUG
 void DEBUG_stackPrint(Stack *stack)
 {
 	StackNode *curNode = stack->top;
@@ -63,3 +64,4 @@ void DEBUG_stackPrint(Stack *stack)
 		curNode = curNode->prevNode;
 	}
 }
+#endif

@@ -7,18 +7,19 @@
 
 typedef struct Frame
 {
-	struct Frame *lastFrame;
+	unsigned int thisFrameIndex;
+	unsigned int lastFrameIndex;
 
 	unsigned int objectsLength;
 	SoupObjVar *objects;
 } Frame;
 
-Frame createFrame(Frame *lastFrame)
+Frame createFrame(unsigned int thisFrameIndex, unsigned int lastFrameIndex)
 {
 	Frame ret =
 	{
-
-		lastFrame,
+		thisFrameIndex,
+		lastFrameIndex,
 
 		1,
 		(SoupObjVar *) malloc(sizeof(SoupObjVar))

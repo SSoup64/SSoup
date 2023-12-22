@@ -8,29 +8,12 @@
 #include "./Frame.h"
 #include "./Stack.h"
 #include "SoupObjVar.h"
+#include "VirtualMachine.h"
 
-#define ADVANCE thisChar = fgetc(code)
-
-bool validateBytes(FILE *code)
-{
-	char thisChar = ' ';
-	char validationBytes[4] = "****";
-	int i = 0;
-
-	for (i = 0; i < 4; i++)
-	{
-		ADVANCE;
-		validationBytes[i] = thisChar;
-	}
-
-	return (strcmp(validationBytes, "SOUP") == 0);
-}
-
-int main(int argc, char **argv)
+int run(char *file)
 {
 	// Define variables
-	FILE *code = NULL;
-	unsigned char thisChar = ' ';
+	VirtualMachine machine = createVirtualMachine(file);
 
 	int i = 0;
 
@@ -42,47 +25,20 @@ int main(int argc, char **argv)
 	unsigned int strBufferLen = 0;
 	char *strBuffer = (char *) malloc(sizeof(char));
 
-	SoupObjVar	objectBuffer = 
-	{
-		OBJ_TYPE_NONE,
-
-		0,
-		"",
-	},
-				oprandLeft =
-	{
-		OBJ_TYPE_NONE,
-
-		0,
-		"",
-	},
-				oprandRight =
-	{
-		OBJ_TYPE_NONE,
-
-		0,
-		"",
-	};
-
-	Frame frame = createFrame(NULL);
-	Stack stack = createStack();
-
-	// Open the file
-	assert(argc >= 2);
-	code = fopen(argv[1], "rb");
 
 	// Read the validation bytes
-	if (!validateBytes(code))
+	if (!virtualMachineValidateBytes(&machine))
 	{
-		fprintf(stderr, "ERROR: Tried to run a file which is suitable to be ran.\n");
+		fprintf(stderr, "ERROR: Tried to run a file which is not in the correct format.\n");
 		exit(1);
 	}
 	
+	// Run the code
 	for (;;)
 	{
-		ADVANCE;
+		virtualMachineAdvance(&machine);
 
-		switch (thisChar)
+		switch (machine.thisChar)
 		{
 			case (unsigned char) I_NOP:
 				break;
@@ -92,18 +48,18 @@ int main(int argc, char **argv)
 
 				for (i = 0; i < sizeof(long); i++)
 				{
-					ADVANCE;
+					virtualMachineAdvance(&machine);
 
 					bytesBuffer <<= 8;
-					bytesBuffer += thisChar;
+					bytesBuffer += machine.thisChar;
 				}
 
 				fVal = *((double *) &bytesBuffer);
 				
-				objectBuffer.type = OBJ_TYPE_FLOAT;
-				objectBuffer.fVal = fVal;
+				machine.objectBuffer.type = OBJ_TYPE_FLOAT;
+				machine.objectBuffer.fVal = fVal;
 
-				stackPush(&stack, objectBuffer);
+				stackPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_PUSH_STRING:
@@ -112,7 +68,7 @@ int main(int argc, char **argv)
 				strBufferLen = 0;
 
 				// Find the length of the string
-				while ((ADVANCE) != '\0')
+				while ((virtualMachineAdvance(&machine)) != '\0')
 				{
 					strBufferLen++;
 				}
@@ -121,45 +77,45 @@ int main(int argc, char **argv)
 				strBuffer = (char *) malloc((strBufferLen + 1) * sizeof(char));
 
 				// Go back and read the characters into strBuffer
-				fseek(code, -((long) strBufferLen + 1), SEEK_CUR);
+				fseek(machine.code, -((long) strBufferLen + 1), SEEK_CUR);
 				
 				for (i = 0; i < strBufferLen + 1; i++)
 				{
-					ADVANCE;
-					strBuffer[i] = thisChar;
+					virtualMachineAdvance(&machine);
+					strBuffer[i] = machine.thisChar;
 				}
 				
-				objectBuffer.type = OBJ_TYPE_STRING;
-				objectBuffer.sVal = strdup(strBuffer);
+				machine.objectBuffer.type = OBJ_TYPE_STRING;
+				machine.objectBuffer.sVal = strdup(strBuffer);
 
-				stackPush(&stack, objectBuffer);
+				stackPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_PLUS:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				oprandRight	= stackPop(&stack);
-				oprandLeft	= stackPop(&stack);
+				machine.oprandRight	= stackPop(&machine.stack);
+				machine.oprandLeft	= stackPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
-				if (oprandLeft.type != oprandRight.type)
+				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the + operator on different types.");
 					exit(1);
 				}
 
 				// Switch the type of the oprands
-				objectBuffer.type = oprandLeft.type;
-				switch (oprandLeft.type)
+				machine.objectBuffer.type = machine.oprandLeft.type;
+				switch (machine.oprandLeft.type)
 				{
 					case OBJ_TYPE_FLOAT:
-						objectBuffer.fVal = oprandLeft.fVal + oprandRight.fVal;
+						machine.objectBuffer.fVal = machine.oprandLeft.fVal + machine.oprandRight.fVal;
 						break;
 
 					case OBJ_TYPE_STRING:
-						objectBuffer.sVal = (char *) malloc(sizeof(char) * (strlen(oprandLeft.sVal) + strlen(oprandRight.sVal) + 1));
-						objectBuffer.sVal = strcat(oprandLeft.sVal, oprandRight.sVal);
+						machine.objectBuffer.sVal = (char *) malloc(sizeof(char) * (strlen(machine.oprandLeft.sVal) + strlen(machine.oprandRight.sVal) + 1));
+						machine.objectBuffer.sVal = strcat(machine.oprandLeft.sVal, machine.oprandRight.sVal);
 						break;
 
 					default:
@@ -168,29 +124,29 @@ int main(int argc, char **argv)
 						break;
 				}
 				
-				stackPush(&stack, objectBuffer);
+				stackPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_MINUS:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				oprandRight	= stackPop(&stack);
-				oprandLeft	= stackPop(&stack);
+				machine.oprandRight	= stackPop(&machine.stack);
+				machine.oprandLeft	= stackPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
-				if (oprandLeft.type != oprandRight.type)
+				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the - operator on different types.");
 					exit(1);
 				}
 
 				// Switch the type of the oprands
-				objectBuffer.type = oprandLeft.type;
-				switch (oprandLeft.type)
+				machine.objectBuffer.type = machine.oprandLeft.type;
+				switch (machine.oprandLeft.type)
 				{
 					case OBJ_TYPE_FLOAT:
-						objectBuffer.fVal = oprandLeft.fVal - oprandRight.fVal;
+						machine.objectBuffer.fVal = machine.oprandLeft.fVal - machine.oprandRight.fVal;
 						break;
 
 					default:
@@ -199,29 +155,29 @@ int main(int argc, char **argv)
 						break;
 				}
 
-				stackPush(&stack, objectBuffer);
+				stackPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_STAR:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				oprandRight	= stackPop(&stack);
-				oprandLeft	= stackPop(&stack);
+				machine.oprandRight	= stackPop(&machine.stack);
+				machine.oprandLeft	= stackPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
-				if (oprandLeft.type != oprandRight.type)
+				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the * operator on different types.");
 					exit(1);
 				}
 
 				// Switch the type of the oprands
-				objectBuffer.type = oprandLeft.type;
-				switch (oprandLeft.type)
+				machine.objectBuffer.type = machine.oprandLeft.type;
+				switch (machine.oprandLeft.type)
 				{
 					case OBJ_TYPE_FLOAT:
-						objectBuffer.fVal = oprandLeft.fVal * oprandRight.fVal;
+						machine.objectBuffer.fVal = machine.oprandLeft.fVal * machine.oprandRight.fVal;
 						break;
 
 					default:
@@ -230,29 +186,29 @@ int main(int argc, char **argv)
 						break;
 				}
 
-				stackPush(&stack, objectBuffer);
+				stackPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_SLASH:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				oprandRight	= stackPop(&stack);
-				oprandLeft	= stackPop(&stack);
+				machine.oprandRight	= stackPop(&machine.stack);
+				machine.oprandLeft	= stackPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
-				if (oprandLeft.type != oprandRight.type)
+				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the / operator on different types.");
 					exit(1);
 				}
 
 				// Switch the type of the oprands
-				objectBuffer.type = oprandLeft.type;
-				switch (oprandLeft.type)
+				machine.objectBuffer.type = machine.oprandLeft.type;
+				switch (machine.oprandLeft.type)
 				{
 					case OBJ_TYPE_FLOAT:
-						objectBuffer.fVal = oprandLeft.fVal / oprandRight.fVal;
+						machine.objectBuffer.fVal = machine.oprandLeft.fVal / machine.oprandRight.fVal;
 						break;
 
 					default:
@@ -261,23 +217,23 @@ int main(int argc, char **argv)
 						break;
 				}
 
-				stackPush(&stack, objectBuffer);
+				stackPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_DEBUG_PRINT:
-				objectBuffer = stackPop(&stack);
+				machine.objectBuffer = stackPop(&machine.stack);
 
-				switch (objectBuffer.type)
+				switch (machine.objectBuffer.type)
 				{
 					case OBJ_TYPE_NONE:
 						break;
 
 					case OBJ_TYPE_FLOAT:
-						printf("%lf\n", objectBuffer.fVal);
+						printf("%lf\n", machine.objectBuffer.fVal);
 						break;
 
 					case OBJ_TYPE_STRING:
-						printf("%s\n", objectBuffer.sVal);
+						printf("%s\n", machine.objectBuffer.sVal);
 						break;
 				}
 
@@ -289,15 +245,15 @@ int main(int argc, char **argv)
 
 				for (i = 0; i < sizeof(unsigned int); i++)
 				{
-					ADVANCE;
+					virtualMachineAdvance(&machine);
 
 					address <<= 8;
-					address += thisChar;
+					address += machine.thisChar;
 				}
 
-				objectBuffer = stackPop(&stack);
+				machine.objectBuffer = stackPop(&machine.stack);
 
-				frameSetObjAt(&frame, address, objectBuffer);
+				frameSetObjAt(machine.frame, address, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_PUSH_MEM:
@@ -305,15 +261,15 @@ int main(int argc, char **argv)
 
 				for (i = 0; i < sizeof(unsigned int); i++)
 				{
-					ADVANCE;
+					virtualMachineAdvance(&machine);
 
 					address <<= 8;
-					address += thisChar;
+					address += machine.thisChar;
 				}
 
-				objectBuffer = frameGetObjAt(&frame, address);
+				machine.objectBuffer = frameGetObjAt(machine.frame, address);
 				
-				stackPush(&stack, objectBuffer);
+				stackPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_EXIT:
@@ -326,18 +282,37 @@ int main(int argc, char **argv)
 
 				for (i = 0; i < sizeof(unsigned int); i++)
 				{
-					ADVANCE;
+					virtualMachineAdvance(&machine);
 
 					address <<= 8;
-					address += thisChar;
+					address += machine.thisChar;
 				}
 
 				// Jump to the address
-				fseek(code, (long) address, SEEK_SET);
+				fseek(machine.code, (long) address, SEEK_SET);
+				break;
+
+			case (unsigned char) I_JMPF:
+				// Get the address
+				address = 0;
+
+				for (i = 0; i < sizeof(unsigned int); i++)
+				{
+					virtualMachineAdvance(&machine);
+
+					address <<= 8;
+					address += machine.thisChar;
+				}
+
+				// Jump to the address
+				fseek(machine.code, (long) address, SEEK_SET);
+
+				// Push a new frame.
+				virtualMachinePushFrame(&machine);
 				break;
 
 			default:
-				fprintf(stderr, "ERROR: Encountered an unknown instruction %X.\n", thisChar);
+				fprintf(stderr, "ERROR: Encountered an unknown instruction %X.\n", machine.thisChar);
 				break;
 		}
 	}

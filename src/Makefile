@@ -1,6 +1,6 @@
 all:
 	# Compile the runner
-	gcc -o ./output/ssoup_run.out ./run/Run.c -D DEBUG
+	gcc -o ./output/ssoup_run.out ./run/Main.c -D DEBUG
 	
 	# Compile the compiler
 	bison -o ./ast/parser.tab.c ./ast/parser.y -d
@@ -11,3 +11,7 @@ all:
 	rm ./ast/lexer.yy.c
 	rm ./ast/parser.tab.c
 	rm ./ast/parser.tab.h
+
+dist:
+	@echo "TODO implement."
+

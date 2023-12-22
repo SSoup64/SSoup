@@ -7,6 +7,9 @@
 #include "./Scope.h"
 #include "./Bytecode.h"
 
+#define COMPILER_SCOPES_LENGTH_ADDER 8
+
+
 typedef struct Compiler
 {
 	unsigned int bytecodeLength, bytecodeUsed;
