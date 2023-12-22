@@ -107,7 +107,11 @@ void compilerSetBytecodeAt(Compiler *compiler, unsigned char bytecode, unsigned 
 
 void compilerWriteToFile(Compiler *compiler, FILE *file)
 {
-	// TODO Add validation bytes 0x53 0x4F 0x55 0x50 (SOUP);
+	// Add validation bytes 0x53 0x4F 0x55 0x50 (SOUP);
+	putc(0x53, file);
+	putc(0x4F, file);
+	putc(0x55, file);
+	putc(0x50, file);
 	
 	for (int i = 0; i < compiler->bytecodeUsed; i++)
 		putc(compiler->bytecode[i], file);

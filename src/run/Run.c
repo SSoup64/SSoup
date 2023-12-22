@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "../bytecode/Bytecode.h"
 #include "./Frame.h"
@@ -9,6 +10,21 @@
 #include "SoupObjVar.h"
 
 #define ADVANCE thisChar = fgetc(code)
+
+bool validateBytes(FILE *code)
+{
+	char thisChar = ' ';
+	char validationBytes[4] = "****";
+	int i = 0;
+
+	for (i = 0; i < 4; i++)
+	{
+		ADVANCE;
+		validationBytes[i] = thisChar;
+	}
+
+	return (strcmp(validationBytes, "SOUP") == 0);
+}
 
 int main(int argc, char **argv)
 {
@@ -54,6 +70,13 @@ int main(int argc, char **argv)
 	// Open the file
 	assert(argc >= 2);
 	code = fopen(argv[1], "rb");
+
+	// Read the validation bytes
+	if (!validateBytes(code))
+	{
+		fprintf(stderr, "ERROR: Tried to run a file which is suitable to be ran.\n");
+		exit(1);
+	}
 	
 	for (;;)
 	{
