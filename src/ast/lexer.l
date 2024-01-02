@@ -4,10 +4,6 @@
 %}
 
 %%
-"let"								{ return TOK_LET; }
-"func"								{ return TOK_FUNC; }
-"print"								{ return TOK_DEBUG_PRINT; }
-
 \"([^"\\]|\\.)*\"					{	yylval.sVal = strdup(yytext); 
 
 										yylval.sVal[strlen(yylval.sVal) - 1] = '\0'; 
@@ -15,8 +11,13 @@
 
 										return TOK_STR;
 									}
-[0-9]+(\.([0-9])+)?					{ yylval.sVal = strdup(yytext); return TOK_NUMBER; }
+
+"let"								{ return TOK_LET; }
+"func"								{ return TOK_FUNC; }
+"print"								{ return TOK_DEBUG_PRINT; }
+
 [A-Za-z_][A-Za-z0-9_]*				{ yylval.sVal = strdup(yytext); return TOK_IDENT; }
+[0-9]+(\.([0-9])+)?					{ yylval.sVal = strdup(yytext); return TOK_NUMBER; }
 
 "("									{ return TOK_LPAREN; }
 ")"									{ return TOK_RPAREN; }
@@ -42,6 +43,5 @@
 
 int yywrap()
 {
-// <<EOF>>								{ return TOK_EOF; }
 	return 1;
 }

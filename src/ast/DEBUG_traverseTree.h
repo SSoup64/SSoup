@@ -6,7 +6,8 @@
 
 const char *NodeTypeToString(NodeType type)
 {
-	switch (type) {
+	switch (type)
+    {
 		case TYPE_SCOPE:
 			return "Scope";
 			break;
@@ -65,17 +66,21 @@ const char *NodeTypeToString(NodeType type)
 
 void insertTabs(int tabs)
 {
-	for (int i = 0; i < tabs; i++)
+    int i = 0;
+
+	for (i = 0; i < tabs; i++)
 		printf("  ");
 }
 
 void traverseTree(AstNode node, int indent)
 {
+	int i = 0;
+
 	// Print the current entry
 	insertTabs(indent);
 	printf("<%s> %s\n", NodeTypeToString(node.type), node.sVal);
 	
 	// Traverse the tree for all the child objects
-	for (int i = 0; i < node.childNodesOccupied; i++)
+	for (i = 0; i < node.childNodesOccupied; i++)
 		traverseTree(node.childNodes[i], indent + 1);
 }

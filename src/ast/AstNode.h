@@ -59,8 +59,6 @@ void nodeChildResize(AstNode *node, unsigned int size)
 	node->childNodesLen = size;
 	node->childNodesOccupied = (size > node->childNodesOccupied) ? node->childNodesOccupied : size;
 
-	// printf("%u", node->childNodesOccupied);
-	
 	node->childNodes = (AstNode *) realloc(node->childNodes, size * sizeof(AstNode));
 }
 
