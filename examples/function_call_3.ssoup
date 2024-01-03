@@ -1,0 +1,14 @@
+func f1(x)
+{
+	print(x);
+}
+
+
+func f2(x)
+{
+	f1(x * x);
+	print(x);
+	f1(x - 1);
+}
+
+f2(10);

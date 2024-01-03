@@ -7,6 +7,7 @@
 #include "../bytecode/Bytecode.h"
 #include "./Frame.h"
 #include "./Stack.h"
+#include "ParamsListStack.h"
 #include "SoupObjVar.h"
 #include "VirtualMachine.h"
 
@@ -24,7 +25,6 @@ int run(char *file)
 
 	unsigned int strBufferLen = 0;
 	char *strBuffer = (char *) malloc(sizeof(char));
-
 
 	// Read the validation bytes
 	if (!virtualMachineValidateBytes(&machine))
@@ -119,7 +119,7 @@ int run(char *file)
 						break;
 
 					default:
-						fprintf(stderr, "ERROR: Tried using + on an unsupported type.");
+						fprintf(stderr, "ERROR: Tried using + on an unsupported type.\n");
 						exit(1);
 						break;
 				}
@@ -137,7 +137,7 @@ int run(char *file)
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
 				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
-					fprintf(stderr, "ERROR: Tried to use the - operator on different types.");
+					fprintf(stderr, "ERROR: Tried to use the - operator on different types.\n");
 					exit(1);
 				}
 
@@ -150,7 +150,7 @@ int run(char *file)
 						break;
 
 					default:
-						fprintf(stderr, "ERROR: Tried using - on an unsupported type.");
+						fprintf(stderr, "ERROR: Tried using - on an unsupported type.\n");
 						exit(1);
 						break;
 				}
@@ -168,7 +168,7 @@ int run(char *file)
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
 				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
-					fprintf(stderr, "ERROR: Tried to use the * operator on different types.");
+					fprintf(stderr, "ERROR: Tried to use the * operator on different types.\n");
 					exit(1);
 				}
 
@@ -181,7 +181,7 @@ int run(char *file)
 						break;
 
 					default:
-						fprintf(stderr, "ERROR: Tried using * on an unsupported type.");
+						fprintf(stderr, "ERROR: Tried using * on an unsupported type.\n");
 						exit(1);
 						break;
 				}
@@ -199,7 +199,7 @@ int run(char *file)
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
 				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
-					fprintf(stderr, "ERROR: Tried to use the / operator on different types.");
+					fprintf(stderr, "ERROR: Tried to use the / operator on different types.\n");
 					exit(1);
 				}
 
@@ -212,7 +212,7 @@ int run(char *file)
 						break;
 
 					default:
-						fprintf(stderr, "ERROR: Tried using / on an unsupported type.");
+						fprintf(stderr, "ERROR: Tried using / on an unsupported type.\n");
 						exit(1);
 						break;
 				}
@@ -289,7 +289,7 @@ int run(char *file)
 				}
 
 				// Jump to the address
-				fseek(machine.code, (long) address, SEEK_SET);
+				fseek(machine.code, (long) address + VALIDATION_BYTES_LEN, SEEK_SET);
 				break;
 
 			case (unsigned char) I_JMPF:
@@ -304,11 +304,39 @@ int run(char *file)
 					address += machine.thisChar;
 				}
 
-				// Jump to the address
-				fseek(machine.code, (long) address, SEEK_SET);
+				// Set the return position of the current parameter stack
+				machine.paramsStack->returnPosition = ftell(machine.code);
 
 				// Push a new frame.
 				virtualMachinePushFrame(&machine);
+
+				for (i = 0; i <= machine.paramsStack->objectsOccupied; i++)
+				{
+					frameSetObjAt(machine.frame, i, machine.paramsStack->objects[i]);
+				}
+
+				// Jump to the address
+				fseek(machine.code, (long) address + VALIDATION_BYTES_LEN, SEEK_SET);
+				break;
+
+			case (unsigned char) I_NPL:
+				virtualMachinePushParamsList(&machine);
+				break;
+
+			case (unsigned char) I_PL_APPEND:
+				machine.objectBuffer = stackPop(&machine.stack);
+				paramsListStackPushObject(machine.paramsStack, machine.objectBuffer);
+				break;
+
+			case (unsigned char) I_RETURN:
+				// Set the position in the bytecode to the previous position
+				fseek(machine.code, (long) machine.paramsStack->returnPosition, SEEK_SET);
+				
+				// Pop the params list
+				virtualMachinePopParamsList(&machine);
+
+				// Pop the frame
+				virtualMachinePopFrame(&machine);
 				break;
 
 			default:

@@ -1,0 +1,14 @@
+func testing(x)
+{
+	let y;
+	y = x * x;
+
+	print(y);
+}
+
+let foo;
+foo = 1;
+
+testing(10);
+
+print(foo);

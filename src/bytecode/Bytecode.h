@@ -1,6 +1,6 @@
 #pragma once
 
-enum Bytecode
+typedef enum Bytecode
 {
 	I_NOP,
 	
@@ -27,5 +27,5 @@ enum Bytecode
 	I_PL_APPEND,
 
 	I_RETURN,
-};
+} Bytecode;
 

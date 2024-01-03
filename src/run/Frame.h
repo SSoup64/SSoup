@@ -12,7 +12,7 @@ typedef struct Frame
 
 	unsigned int objectsLength;
 	SoupObjVar *objects;
-} Frame;
+}Frame;
 
 Frame createFrame(unsigned int thisFrameIndex, unsigned int lastFrameIndex)
 {

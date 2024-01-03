@@ -8,8 +8,11 @@
 #include "Frame.h"
 #include "SoupObjVar.h"
 #include "Stack.h"
+#include "ParamsListStack.h"
 
-#define VIRTUAL_MACHINE_FRAMES_LENGTH_ADDER 8
+#define VALIDATION_BYTES_LEN 4
+
+const int VIRTUAL_MACHINE_FRAMES_LENGTH_ADDER = 8;
 
 typedef struct VirtualMachine
 {
@@ -24,6 +27,8 @@ typedef struct VirtualMachine
 	Stack stack;
 
 	SoupObjVar oprandLeft, oprandRight, objectBuffer;
+	
+	ParamsListStack *paramsStack;
 } VirtualMachine;
 
 VirtualMachine createVirtualMachine(char *code)
@@ -58,20 +63,24 @@ VirtualMachine createVirtualMachine(char *code)
 	ret.oprandRight.fVal = 0;
 	ret.oprandRight.sVal = "";
 
+	ret.paramsStack = NULL; 
+
 	return ret;
 }
 
 void virtualMachinePushFrame(VirtualMachine *machine)
 {
-	if (machine->framesOccupied >= machine->framesLen)
+	unsigned int thisFrameIndex = machine->frame->thisFrameIndex;
+
+	if (machine->framesOccupied + 1 >= machine->framesLen)
 	{
 		machine->framesLen += VIRTUAL_MACHINE_FRAMES_LENGTH_ADDER;
 		machine->frames = (Frame *) realloc(machine->frames, machine->framesLen * sizeof(Frame));
 	}
 
-	machine->frames[machine->framesOccupied] = createFrame(machine->framesOccupied, machine->frame->thisFrameIndex);
+	machine->frames[machine->framesOccupied] = createFrame(machine->framesOccupied, thisFrameIndex);
 	machine->frame = &machine->frames[machine->framesOccupied];
-	
+
 	machine->framesOccupied++;
 }
 
@@ -88,10 +97,10 @@ unsigned char virtualMachineAdvance(VirtualMachine *machine)
 
 bool virtualMachineValidateBytes(VirtualMachine *machine)
 {
-	char validationBytes[5] = "****";
+	char validationBytes[VALIDATION_BYTES_LEN + 1] = "****";
 	int i = 0;
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < VALIDATION_BYTES_LEN; i++)
 	{
 		virtualMachineAdvance(machine);
 		validationBytes[i] = machine->thisChar;
@@ -100,3 +109,12 @@ bool virtualMachineValidateBytes(VirtualMachine *machine)
 	return (strcmp(validationBytes, "SOUP") == 0);
 }
 
+void virtualMachinePushParamsList(VirtualMachine *machine)
+{
+	machine->paramsStack = createParamsListStack(machine->paramsStack);
+}
+
+void virtualMachinePopParamsList(VirtualMachine *machine)
+{
+	machine->paramsStack = machine->paramsStack->previousParamsList;
+}
