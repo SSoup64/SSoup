@@ -59,6 +59,10 @@ const char *NodeTypeToString(NodeType type)
 		case TYPE_EXPRS:
 			return "Expressions";
 			break;
+
+		case TYPE_RETURN:
+			return "Return";
+			break;
 	}
 
 	return "Unknown type";

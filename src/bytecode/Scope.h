@@ -1,14 +1,14 @@
 #pragma once
 
-#define SCOPE_VARIABLE_LENGTH_ADDER 8
-#define SCOPE_FUNC_LENGTH_ADDER 8
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "./Variable.h"
 #include "./Func.h"
+
+const int SCOPE_VARIABLE_LENGTH_ADDER = 8;
+const int SCOPE_FUNC_LENGTH_ADDER = 8;
 
 typedef enum ScopeType
 {

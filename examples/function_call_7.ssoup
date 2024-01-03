@@ -1,0 +1,10 @@
+func testing()
+{
+	print("Hello!");
+
+	return;
+
+	print("This should not appear");
+}
+
+testing();

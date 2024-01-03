@@ -14,6 +14,7 @@
 
 "let"								{ return TOK_LET; }
 "func"								{ return TOK_FUNC; }
+"return"							{ return TOK_RETURN; }
 "print"								{ return TOK_DEBUG_PRINT; }
 
 [A-Za-z_][A-Za-z0-9_]*				{ yylval.sVal = strdup(yytext); return TOK_IDENT; }

@@ -25,7 +25,7 @@
 
 %start root
 
-%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" TOK_FUNC "func" // Keywords
+%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" TOK_FUNC "func" TOK_RETURN "return" // Keywords
 %token <sVal>	TOK_IDENT TOK_STR TOK_NUMBER
 %token <sVal>	TOK_SEMICOLONS ";" TOK_COMMA ","
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
@@ -93,6 +93,25 @@ stmt:			var_decl ";"	 																	{
 																										AstNode ret = createNode(TYPE_DEBUG_PRINT, "", 1);
 
 																										nodeAddChild(&ret, *$3);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			"return" expr ";"																	{
+																										AstNode ret = createNode(TYPE_RETURN, "", 1);
+
+																										nodeAddChild(&ret, *$2);
+
+																										$$ = ALLOC;
+																										*$$ = ret;
+																									}
+
+	|			"return" ";"																		{
+																										AstNode ret			= createNode(TYPE_RETURN, "", 1),
+																												emptyNode	= createNode(TYPE_EMPTY_NODE, "", 0);
+
+																										nodeAddChild(&ret, emptyNode);
 
 																										$$ = ALLOC;
 																										*$$ = ret;

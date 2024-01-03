@@ -220,6 +220,17 @@ void compile(Compiler *compiler, AstNode *node)
 				compilerAppendBytecode(compiler, (unsigned char) I_PL_APPEND);
 			}
 			break;
+
+		case TYPE_RETURN:
+			if (compiler->scope->type != SCOPE_FUNC)
+			{
+				fprintf(stderr, "ERROR: Tried using the 'return' keyword outside of a function scope.\n");
+				exit(1);
+			}
+
+			compile(compiler, &node->childNodes[0]);
+			compilerAppendBytecode(compiler, (unsigned char) I_RETURN);
+			break;
 	}
 }
 

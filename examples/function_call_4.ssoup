@@ -1,0 +1,7 @@
+func recursion(x)
+{
+	print(x);
+	recursion(x - 1);
+}
+
+recursion(100);

@@ -20,6 +20,7 @@ typedef enum NodeType
 	TYPE_PARAMS,
 	TYPE_FUNC_CALL,
 	TYPE_EXPRS,
+	TYPE_RETURN,
 } NodeType;
 
 typedef struct AstNode
