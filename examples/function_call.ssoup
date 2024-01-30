@@ -3,4 +3,7 @@ func printAddition(x, y)
 	print(x + y);
 }
 
-printAddition(10, 5);
+func main()
+{
+	printAddition(10, 5);
+}

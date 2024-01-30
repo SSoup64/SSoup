@@ -4,4 +4,7 @@ func infiniteLoop()
 	infiniteLoop();
 }
 
-infiniteLoop();
+func main()
+{
+	infiniteLoop();
+}

@@ -3,4 +3,7 @@ func quadratic(a, b, c, x)
 	return a * x * x + b * x + c;
 }
 
-print(quadratic(1, 2, 3, 0));
+func main()
+{
+	print(quadratic(1, 2, 3, 0));
+}

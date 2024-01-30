@@ -4,4 +4,7 @@ func recursion(x)
 	recursion(x - 1);
 }
 
-recursion(100);
+func main()
+{
+	recursion(100);
+}

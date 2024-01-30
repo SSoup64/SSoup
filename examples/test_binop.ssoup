@@ -1,11 +1,14 @@
-let a;
-let b;
-let c;
+func main()
+{
+	let a;
+	let b;
+	let c;
 
-a = 15;
-b = 2 + 5;
-c = 5 * 4.2 + 50/9;
+	a = 15;
+	b = 2 + 5;
+	c = 5 * 4.2 + 50/9;
 
-print(a);
-print(b);
-print(c);
+	print(a);
+	print(b);
+	print(c);
+}

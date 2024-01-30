@@ -12,3 +12,8 @@ func buzz()
 {
 	print("testing is hard");
 }
+
+func main()
+{
+	buzz();
+}

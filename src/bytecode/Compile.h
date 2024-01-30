@@ -154,15 +154,17 @@ void compile(Compiler *compiler, AstNode *node)
 			compilerAppendScope(compiler, strdup(node->sVal), SCOPE_FUNC);
 
 			// JMP statement so the code doesn't run when we start the program
-			compilerAppendBytecode(compiler, (unsigned char) I_JMP);
+			// compilerAppendBytecode(compiler, (unsigned char) I_JMP);
 			
 			// Save the current length of the bytecode so we could rewrite it later
 			address = compiler->bytecodeUsed;
-
+			
+			/*
 			for (i = 0; i < sizeof(unsigned int); i++)
 			{
 				compilerAppendBytecode(compiler, 0);
 			}
+			*/
 
 			// Set the scopes current function
 			compilerSetCurScopeFunc(compiler, createFunc(compiler->bytecodeUsed, node->childNodes[0].childNodesOccupied));
@@ -176,11 +178,13 @@ void compile(Compiler *compiler, AstNode *node)
 			// Add a default return
 			compilerAppendBytecode(compiler, (unsigned char) I_RETURN);
 
+			/*
 			// Set the address to jump to
 			for (i = 0; i < sizeof(unsigned int); i++)
 			{
 				compilerSetBytecodeAt(compiler, compiler->bytecodeUsed >> (8 * i), address + sizeof(unsigned int) - i - 1);
 			}
+			*/
 
 			compilerPopScope(compiler);
 			break;
@@ -236,8 +240,50 @@ void compile(Compiler *compiler, AstNode *node)
 
 void startCompile(Compiler *compiler, AstNode *node)
 {
+	int i = 0;
+	unsigned int mainFuncAddress = 0, mainCallAddress = 0;
+	unsigned int jumpToExitAddress = 0;
+
+	// Add the NPL and JMPF instructions for the main function
+	compilerAppendBytecode(compiler, (unsigned char) I_NPL);
+	compilerAppendBytecode(compiler, (unsigned char) I_JMPF);
+	
+	mainCallAddress = compiler->bytecodeUsed;
+
+	// Write a placeholder value for the main func address
+	for (i = sizeof(unsigned int) - 1; i >= 0; i--)
+	{
+		compilerAppendBytecode(compiler, (unsigned char) (mainFuncAddress >> 8 * i));
+	}
+
+	// Add jump to the exit
+	compilerAppendBytecode(compiler, (unsigned char) I_JMP);
+
+	jumpToExitAddress = compiler->bytecodeUsed;
+
+	// Write a placeholder value for the exit instruction
+	for (i = sizeof(unsigned int) - 1; i >= 0; i--)
+	{
+		compilerAppendBytecode(compiler, (unsigned char) (mainFuncAddress >> 8 * i));
+	}
+	
+	// Compile thhe AST
 	compile(compiler, node);
 	
+	// Find the address of the main function and add it to the bytecode
+	mainFuncAddress = compilerFindFuncAddress(compiler, &compiler->scopes[0], strdup("main"), 0);
+	
+	for (i = 0; i < sizeof(unsigned int); i++)
+	{
+		compilerSetBytecodeAt(compiler, mainFuncAddress >> (8 * i), mainCallAddress + sizeof(unsigned int) - i - 1);
+	}
+	
+	// Add an EXIT instruction just in case.
 	compilerAppendBytecode(compiler, (unsigned char) I_EXIT);
-	// TODO: Check for a main function.
+
+	// Write the address of theh exit instruction to the bytecode
+	for (i = 0; i < sizeof(unsigned int); i++)
+	{
+		compilerSetBytecodeAt(compiler, (compiler->bytecodeUsed - 1) >> (8 * i), jumpToExitAddress + sizeof(unsigned int) - i - 1);
+	}
 }

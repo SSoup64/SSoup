@@ -6,9 +6,12 @@ func testing(x)
 	print(y);
 }
 
-let foo;
-foo = 1;
+func main()
+{
+	let foo;
+	foo = 1;
 
-testing(10);
+	testing(10);
 
-print(foo);
+	print(foo);
+}

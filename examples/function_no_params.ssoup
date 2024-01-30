@@ -8,6 +8,8 @@ func foo()
 	print("foo");
 }
 
-foo();
-printHi();
-
+func main()
+{
+	foo();
+	printHi();
+}

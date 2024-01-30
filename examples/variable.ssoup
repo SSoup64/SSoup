@@ -1,6 +1,9 @@
-let bar;
-let foo;
+func main()
+{
+	let bar;
+	let foo;
 
-foo = 14;
+	foo = 14;
 
-print(foo);
+	print(foo);
+}

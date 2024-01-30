@@ -9,6 +9,9 @@ func printSquares(a, b)
 	print(b * b);
 }
 
-printSquares(1);
-printSquares(2, 1);
-printSquares(3);
+func main()
+{
+	printSquares(1);
+	printSquares(2, 1);
+	printSquares(3);
+}

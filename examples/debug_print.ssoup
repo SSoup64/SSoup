@@ -1,2 +1,5 @@
-print("hello world");
-print(1 + 15/2);
+func main()
+{
+	print("hello world");
+	print(1 + 15/2);
+}

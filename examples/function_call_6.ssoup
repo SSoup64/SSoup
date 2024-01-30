@@ -8,4 +8,7 @@ func printSquare(x)
 	print(x * x);
 }
 
-printSquare(add(2, 5));
+func main()
+{
+	printSquare(add(2, 5));
+}
