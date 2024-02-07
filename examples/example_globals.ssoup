@@ -1,0 +1,6 @@
+let i;
+
+func main()
+{
+	i = 4;
+}

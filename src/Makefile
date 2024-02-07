@@ -1,6 +1,6 @@
 all:
 	# Compile the runner
-	gcc -o ./output/ssoup_run.out ./run/Main.c -D DEBUG -funsigned-char
+	# gcc -o ./output/ssoup_run.out ./run/Main.c -D DEBUG -funsigned-char
 	
 	# Compile the compiler
 	bison -o ./ast/parser.tab.c ./ast/parser.y -d

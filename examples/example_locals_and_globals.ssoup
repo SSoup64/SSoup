@@ -1,0 +1,18 @@
+let foo;
+let bar;
+
+func testFunc()
+{
+	bar = 90;
+}
+
+func main()
+{
+	let bar;
+	let buzz;
+
+	bar = 0;
+	buzz = "Test";
+
+	testFunc();
+}

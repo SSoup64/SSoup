@@ -9,6 +9,7 @@
 #include "./Bytecode.h"
 #include "./Func.h"
 #include "Scope.h"
+#include "Variable.h"
 
 void compile(Compiler *compiler, AstNode *node)
 {
@@ -19,6 +20,8 @@ void compile(Compiler *compiler, AstNode *node)
 	unsigned int address = 0; // Mainly for variables and funcitons
 
 	int i = 0; // For indexing like in for loops
+
+	Variable *varPointer = NULL;
 
 	switch (node->type)
 	{
@@ -95,11 +98,25 @@ void compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_IDENT:
-			// Add I_PUSH_MEM bytecode
-			compilerAppendBytecode(compiler, (unsigned char) I_PUSH_MEM);
+			// Get the variable
+			varPointer = compilerGetVariable(compiler, node->sVal);
+			address = varPointer->address;
 
-			// Get the address of the variable
-			address = scopeGetVariable(compiler->scope, node->sVal);
+			// Add I_PUSH_GLOBAL/I_PUSH_LOCAL
+			switch (varPointer->type)
+			{
+				case VAR_TYPE_GLOBAL:
+					compilerAppendBytecode(compiler, (unsigned char) I_PUSH_GLOBAL);
+					break;
+
+				case VAR_TYPE_LOCAL:
+					compilerAppendBytecode(compiler, (unsigned char) I_PUSH_LOCAL);
+					break;
+
+				default:
+					fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
+					break;
+			}
 
 			// Add the address of the variable to the bytecode
 			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
@@ -110,18 +127,31 @@ void compile(Compiler *compiler, AstNode *node)
 
 		case TYPE_VAR_DECL:
 			// Add the variable to the scope
-			scopeAddVariable(compiler->scope, node->childNodes[0].sVal);
+			compilerCreateVariable(compiler, compiler->scope, node->childNodes[0].sVal);
 			break;
 
 		case TYPE_VAR_ASSIGN:
 			// Compile the RHS of the assignment
 			compile(compiler, &node->childNodes[1]);
 
-			// Add I_POP bytecode
-			compilerAppendBytecode(compiler, (unsigned char) I_POP);
+			// Get the variable.
+			varPointer = compilerGetVariable(compiler, node->childNodes[0].sVal);
+			address = varPointer->address;
 
-			// Get the address of the variable to save to
-			address = scopeGetVariable(compiler->scope, node->childNodes[0].sVal);
+			switch (varPointer->type)
+			{
+				case VAR_TYPE_GLOBAL:
+					compilerAppendBytecode(compiler, (unsigned char) I_POP_GLOBAL);
+					break;
+
+				case VAR_TYPE_LOCAL:
+					compilerAppendBytecode(compiler, (unsigned char) I_POP_LOCAL);
+					break;
+
+				default:
+					fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
+					break;
+			}
 
 			// Add the address of the variable to the bytecode
 			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
@@ -192,7 +222,7 @@ void compile(Compiler *compiler, AstNode *node)
 		case TYPE_PARAMS:
 			for (i = 0; i < node->childNodesOccupied; i++)
 			{
-				scopeAddVariable(compiler->scope, strdup(node->childNodes[i].sVal));
+				compilerCreateVariable(compiler, compiler->scope, strdup(node->childNodes[i].sVal));
 			}
 			break;
 

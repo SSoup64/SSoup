@@ -1,13 +1,14 @@
 #pragma once
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "./Scope.h"
 #include "./Bytecode.h"
+#include "Variable.h"
 
 const int COMPILER_SCOPES_LENGTH_ADDER = 8;
+const int COMPILER_GLOBAL_LENGTH_ADDER = 8;
 
 typedef struct Compiler
 {
@@ -18,7 +19,11 @@ typedef struct Compiler
 	Scope *scopes;
 
 	Scope *scope;
-} Compiler;
+
+	unsigned int globalVarsLength, globalVarsUsed;
+	Variable **globalVars;
+}
+Compiler;
 
 Compiler createCompiler()
 {
@@ -40,13 +45,19 @@ Compiler createCompiler()
 	ret.scope = &ret.scopes[0];
 	ret.scopesUsed = 1;
 
+	// Set the globalVars array to an empty array.
+	ret.globalVarsLength = 0;
+	ret.globalVarsUsed = 0;
+	
+	ret.globalVars = (Variable **) malloc(ret.globalVarsLength * sizeof(Variable *));
+
 	return ret;
 }
 
 void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 {
 	unsigned int curScopeIndex = compiler->scope->scopeIndex;
-	Scope newScope;
+	Scope newScope; // TODO Find value to initialize this variable to
 
 	/*
 	TODO: Create function "compilerScopeExists"
@@ -138,8 +149,9 @@ void compilerSetCurScopeFunc(Compiler *compiler, Func func)
 unsigned int compilerFindFuncAddress(Compiler *compiler, Scope *curScope, char *name, unsigned int params)
 {
 	unsigned int funcIndex = 0;
+	int i = 0;
 	
-	for (int i = 0; i < curScope->funcsOccupied; i++)
+	for (i = 0; i < curScope->funcsOccupied; i++)
 	{
 		funcIndex = curScope->funcsIndices[i];
 
@@ -157,6 +169,62 @@ unsigned int compilerFindFuncAddress(Compiler *compiler, Scope *curScope, char *
 
 	fprintf(stderr, "ERROR: Could not find function %s.\n", name);
 	exit(1);
+}
+
+void compilerCreateVariable(Compiler *compiler, Scope *curScope, char *name)
+{
+	VariableType varType = VAR_TYPE_GLOBAL;
+	Variable *var = NULL;
+
+	// Check whether or not the variable is global
+	switch (curScope->type)
+	{
+		case SCOPE_FUNC:
+			varType = VAR_TYPE_LOCAL;
+			break;
+
+		case SCOPE_CLASS:
+			varType = VAR_TYPE_ATTR;
+			break;
+
+		default:
+			varType = VAR_TYPE_GLOBAL;
+			break;
+	}
+
+	var = scopeAddVariable(curScope, strdup(name), varType);
+
+	if (VAR_TYPE_GLOBAL == varType)
+	{
+		if (compiler->globalVarsUsed + 1 >= compiler->globalVarsLength)
+		{
+			compiler->globalVarsLength += COMPILER_GLOBAL_LENGTH_ADDER;
+			compiler->globalVars = (Variable **) realloc(compiler->globalVars, sizeof(Variable *) * compiler->globalVarsLength);
+		}
+
+		var->address = compiler->globalVarsUsed;
+		compiler->globalVars[compiler->globalVarsUsed++] = var;
+	}
+}
+
+Variable *compilerGetVariable(Compiler *compiler, char *name)
+{
+	Scope *curScope = compiler->scope;
+	Variable *ret = scopeGetVariable(curScope, strdup(name));
+
+	while (curScope->prevScopeIndex != curScope->scopeIndex && NULL == ret)
+	{
+		curScope = &compiler->scopes[curScope->prevScopeIndex];
+		ret = scopeGetVariable(curScope, strdup(name));
+	}
+
+	if (NULL == ret)
+	{
+		fprintf(stderr, "Error: Refrence to unitialized variable %s.\n", name);
+		exit(1);
+	}
+
+	return ret;
 }
 
 #ifdef DEBUG
@@ -237,8 +305,8 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				printf("DEBUG_PRINT");
 				break;
 
-			case (unsigned char) I_POP:
-				printf("POP\t\t");
+			case (unsigned char) I_POP_GLOBAL:
+				printf("POP_GLOBAL\t");
 
 				address = 0;
 
@@ -253,8 +321,40 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				printf("%u", address);
 				break;
 
-			case (unsigned char) I_PUSH_MEM:
-				printf("PUSH_MEM\t");
+			case (unsigned char) I_POP_LOCAL:
+				printf("POP_LOCAL\t");
+
+				address = 0;
+
+				for (int j = ++i; j < i + sizeof(unsigned int); j++)
+				{
+					address <<= 8;
+					address += compiler->bytecode[j];
+				}
+
+				i += sizeof(unsigned int) - 1;
+
+				printf("%u", address);
+				break;
+
+			case (unsigned char) I_PUSH_GLOBAL:
+				printf("PUSH_GLOBAL\t");
+
+				address = 0;
+
+				for (int j = ++i; j < i + sizeof(unsigned int); j++)
+				{
+					address <<= 8;
+					address += compiler->bytecode[j];
+				}
+
+				i += sizeof(unsigned int) - 1;
+
+				printf("%u", address);
+				break;
+
+			case (unsigned char) I_PUSH_LOCAL:
+				printf("PUSH_LOCAL\t");
 
 				address = 0;
 

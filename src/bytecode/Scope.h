@@ -15,7 +15,8 @@ typedef enum ScopeType
 	SCOPE_ROOT,
 	SCOPE_CLASS,
 	SCOPE_FUNC,
-} ScopeType;
+}
+ScopeType;
 
 // Basically stores things about the current scope like variables.
 typedef struct Scope
@@ -45,7 +46,8 @@ typedef struct Scope
 
 	// SCOPE_FUNC specific variable address.
 	Func func;
-} Scope;
+}
+Scope;
 
 void createScopeNull(Scope *newScope, char *name, ScopeType type)
 {
@@ -90,7 +92,7 @@ void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScop
 	newScope->funcsIndices = (unsigned int *) malloc(sizeof(unsigned int));
 }
 
-void scopeAddVariable(Scope *scope, char *name)
+Variable *scopeAddVariable(Scope *scope, char *name, VariableType type)
 {
 	// TODO: Test if the variable is already initialized and print an error message if it is.
 	
@@ -100,20 +102,25 @@ void scopeAddVariable(Scope *scope, char *name)
 		scope->variables = (Variable *) realloc(scope->variables, sizeof(Variable) * scope->variablesLength);
 	}
 
-	scope->variables[scope->variablesOccupied++] = createVariable(name);
+	scope->variables[scope->variablesOccupied] = createVariable(name, type, scope->variablesOccupied);
+	scope->variablesOccupied++;
+
+	return &scope->variables[scope->variablesOccupied - 1];
 }
 
-unsigned int scopeGetVariable(Scope *scope, char *name)
+Variable *scopeGetVariable(Scope *scope, char *name)
 {
+	Variable *ret = NULL;
+
 	for (unsigned int i = 0; i < scope->variablesOccupied; i++)
 	{
 		if (strcmp(scope->variables[i].name, name) == 0)
-			return i;
+		{
+			ret = &scope->variables[i];
+		}
 	}
 
-	fprintf(stderr, "Error: Refrence to unitialized variable %s.\n", name);
-
-	exit(1);
+	return ret;
 }
 
 void scopeAddFuncIndex(Scope *scope, unsigned int index)
