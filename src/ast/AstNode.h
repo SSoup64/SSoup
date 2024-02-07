@@ -1,5 +1,4 @@
-#ifndef COMPILE_ASTNODE
-#define COMPILE_ASTNODE
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +20,8 @@ typedef enum NodeType
 	TYPE_FUNC_CALL,
 	TYPE_EXPRS,
 	TYPE_RETURN,
-} NodeType;
+}
+NodeType;
 
 typedef struct AstNode
 {
@@ -32,35 +32,11 @@ typedef struct AstNode
 	char *sVal;							// The sVal string
 
 	NodeType type;						// The type of the node
-} AstNode;
-
-AstNode createNode(NodeType type, char *sVal, unsigned int childNodesLen)
-{
-	AstNode ret =	
-	{
-		childNodesLen,
-		0,
-		(AstNode *) malloc(sizeof(AstNode) * childNodesLen),
-		
-		strdup(sVal),
-
-		type
-	};
-	
-	return ret;
 }
+AstNode;
 
-void nodeAddChild(AstNode *node, AstNode child)
-{
-	node->childNodes[node->childNodesOccupied++] = child;
-}
+AstNode createNode(NodeType type, char *sVal, unsigned int childNodesLen);
+void nodeAddChild(AstNode *node, AstNode child);
+void nodeChildResize(AstNode *node, unsigned int size);
 
-void nodeChildResize(AstNode *node, unsigned int size)
-{
-	node->childNodesLen = size;
-	node->childNodesOccupied = (size > node->childNodesOccupied) ? node->childNodesOccupied : size;
 
-	node->childNodes = (AstNode *) realloc(node->childNodes, size * sizeof(AstNode));
-}
-
-#endif

@@ -9,15 +9,7 @@ typedef struct Func
 
 	// How many parameters it takes
 	unsigned int paramsLen;
-} Func;
-
-Func createFunc(unsigned int address, unsigned int paramsLen)
-{
-	Func ret = 
-	{
-		address,
-		paramsLen
-	};
-
-	return ret;
 }
+Func;
+
+Func createFunc(unsigned int address, unsigned int paramsLen);

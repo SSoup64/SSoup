@@ -5,7 +5,8 @@ typedef enum SoupObjVarType
 	OBJ_TYPE_NONE,
 	OBJ_TYPE_FLOAT,
 	OBJ_TYPE_STRING,
-} SoupObjVarType;
+}
+SoupObjVarType;
 
 typedef struct SoupObjVar
 {
@@ -14,4 +15,5 @@ typedef struct SoupObjVar
 
 	double fVal;
 	char *sVal;
-} SoupObjVar;
+}
+SoupObjVar;

@@ -4,7 +4,8 @@
 %}
 
 %%
-\"([^"\\]|\\.)*\"					{	yylval.sVal = strdup(yytext); 
+\"([^"\\]|\\.)*\"					{
+										yylval.sVal = strdup(yytext); 
 
 										yylval.sVal[strlen(yylval.sVal) - 1] = '\0'; 
 										yylval.sVal++;

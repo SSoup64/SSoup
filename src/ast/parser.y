@@ -5,13 +5,13 @@
 	#include <stdlib.h>
 	#include <string.h>
 
-	#include "./AstNode.h"
+	#include "./AstNode.c"
 	
 #ifdef DEBUG
-	#include "./DEBUG_traverseTree.h"
+	#include "./DEBUG_traverseTree.c"
 #endif
 
-	#include "../bytecode/Compile.h"
+	#include "../bytecode/Compile.c"
 
 	#define ALLOC \
 	(struct AstNode *) malloc(sizeof(struct AstNode)); \
@@ -25,7 +25,7 @@
 
 %start root
 
-%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" TOK_FUNC "func" TOK_RETURN "return" // Keywords
+%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" TOK_FUNC "func" TOK_RETURN "return"
 %token <sVal>	TOK_IDENT TOK_STR TOK_NUMBER
 %token <sVal>	TOK_SEMICOLONS ";" TOK_COMMA ","
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
@@ -41,246 +41,272 @@
 %right			TOK_LPAREN TOK_RPAREN
 
 %%
-root:			scope YYEOF																			{
-																										rootNode = *$1;
-																									}
+root:			scope YYEOF
+				{
+					rootNode = *$1;
+				}
 
-scope:			%empty																				{
-																										AstNode ret = createNode(TYPE_SCOPE, "", 0);
+scope:			%empty
+				{
+					AstNode ret = createNode(TYPE_SCOPE, "", 0);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			scope stmt																			{
-																										AstNode ret = *$1;
+	|			scope stmt
+				{
+					AstNode ret = *$1;
 
-																										nodeChildResize(&ret, ret.childNodesLen + 1);
+					nodeChildResize(&ret, ret.childNodesLen + 1);
 
-																										nodeAddChild(&ret, *$2);
+					nodeAddChild(&ret, *$2);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			scope func_decl																		{
-																										AstNode ret = *$1;
+	|			scope func_decl	
+				{
+					AstNode ret = *$1;
 
-																										nodeChildResize(&ret, ret.childNodesLen + 1);
+					nodeChildResize(&ret, ret.childNodesLen + 1);
 
-																										nodeAddChild(&ret, *$2);
+					nodeAddChild(&ret, *$2);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-stmt:			var_decl ";"	 																	{
-																										$$ = ALLOC;
-																										*$$ = *$1;
-																									}
+stmt:			var_decl ";"	 																	
+				{
+					$$ = ALLOC;
+					*$$ = *$1;
+				}
 
-	|			expr ";"																			{
-																										$$ = ALLOC;
-																										*$$ = *$1;
-																									}
+	|			expr ";"																			
+				{
+					$$ = ALLOC;
+					*$$ = *$1;
+				}
 
-	|			var_assign ";"																		{
-																										$$ = ALLOC
-																										*$$ = *$1;
-																									}
+	|			var_assign ";"																		
+				{
+					$$ = ALLOC
+					*$$ = *$1;
+				}
 
-	|			"print" "(" expr ")" ";"															{
-																										AstNode ret = createNode(TYPE_DEBUG_PRINT, "", 1);
+	|			"print" "(" expr ")" ";"														
+				{
+					AstNode ret = createNode(TYPE_DEBUG_PRINT, "", 1);
 
-																										nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			"return" expr ";"																	{
-																										AstNode ret = createNode(TYPE_RETURN, "", 1);
+	|			"return" expr ";"																	
+				{
+					AstNode ret = createNode(TYPE_RETURN, "", 1);
 
-																										nodeAddChild(&ret, *$2);
+					nodeAddChild(&ret, *$2);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			"return" ";"																		{
-																										AstNode ret			= createNode(TYPE_RETURN, "", 1),
-																												emptyNode	= createNode(TYPE_EMPTY_NODE, "", 0);
+	|			"return" ";"																		
+				{
+					AstNode ret = createNode(TYPE_RETURN, "", 1), emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
 
-																										nodeAddChild(&ret, emptyNode);
+					nodeAddChild(&ret, emptyNode);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-expr:			TOK_IDENT "(" ")"																	{
-																										AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1),
-																												emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
+expr:			TOK_IDENT "(" ")"
+				{
+					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1), emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
 
-																										nodeAddChild(&ret, emptyNode);
+					nodeAddChild(&ret, emptyNode);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			TOK_IDENT "(" exprs ")"																{
-																										AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1);
+	|			TOK_IDENT "(" exprs ")"																
+				{
+					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1);
 
-																										nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			expr "*" expr																		{
-																										AstNode ret = createNode(TYPE_BINOP, "*", 2);
+	|			expr "*" expr
+				{
+					AstNode ret = createNode(TYPE_BINOP, "*", 2);
 
-																										nodeAddChild(&ret, *$1);
-																										nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, *$1);
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			expr "/" expr																		{
-																										AstNode ret = createNode(TYPE_BINOP, "/", 2);
+	|			expr "/" expr
+				{
+					AstNode ret = createNode(TYPE_BINOP, "/", 2);
 
-																										nodeAddChild(&ret, *$1);
-																										nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, *$1);
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			expr "+" expr																		{
-																										AstNode ret = createNode(TYPE_BINOP, "+", 2);
+	|			expr "+" expr
+				{
+					AstNode ret = createNode(TYPE_BINOP, "+", 2);
 
-																										nodeAddChild(&ret, *$1);
-																										nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, *$1);
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			expr "-" expr																		{
-																										AstNode ret = createNode(TYPE_BINOP, "-", 2);
+	|			expr "-" expr
+				{
+					AstNode ret = createNode(TYPE_BINOP, "-", 2);
 
-																										nodeAddChild(&ret, *$1);
-																										nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, *$1);
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			"(" expr ")"																		{
-																										$$ = ALLOC;
-																										*$$ = *$2;
-																									}
+	|			"(" expr ")"
+				{
+					$$ = ALLOC;
+					*$$ = *$2;
+				}
 
-	|			TOK_NUMBER																			{
-																										AstNode ret = createNode(TYPE_NUMBER, strdup($1), 0);
+	|			TOK_NUMBER
+				{
+					AstNode ret = createNode(TYPE_NUMBER, strdup($1), 0);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-	|			TOK_STR																				{
-																										AstNode ret = createNode(TYPE_STR, strdup($1), 0);
+	|			TOK_STR
+				{
+					AstNode ret = createNode(TYPE_STR, strdup($1), 0);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 	
-	|			TOK_IDENT																			{
-																										AstNode ret = createNode(TYPE_IDENT, strdup($1), 0);
-																										
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+	|			TOK_IDENT
+				{
+					AstNode ret = createNode(TYPE_IDENT, strdup($1), 0);
+					
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-var_assign:		TOK_IDENT "=" expr																	{
-																										AstNode ret = createNode(TYPE_VAR_ASSIGN, "", 2);
+var_assign:		TOK_IDENT "=" expr
+				{
+					AstNode ret = createNode(TYPE_VAR_ASSIGN, "", 2);
 
-																										nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($1), 0));
-																										nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($1), 0));
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-var_decl:		"let" TOK_IDENT																		{
-																										AstNode ret = createNode(TYPE_VAR_DECL, "", 1);
+var_decl:		"let" TOK_IDENT
+				{
+					AstNode ret = createNode(TYPE_VAR_DECL, "", 1);
 
-																										nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($2), 0));
+					nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($2), 0));
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-func_decl:		"func" TOK_IDENT "(" ")" "{" scope "}"												{
-																										AstNode	ret			= createNode(TYPE_FUNC_DECL, strdup($2), 2),
-																												emptyNode	= createNode(TYPE_EMPTY_NODE, "", 0);
+func_decl:		"func" TOK_IDENT "(" ")" "{" scope "}"
+				{
+					AstNode	ret			= createNode(TYPE_FUNC_DECL, strdup($2), 2),
+							emptyNode	= createNode(TYPE_EMPTY_NODE, "", 0);
 
-																										nodeAddChild(&ret, emptyNode);
-																										nodeAddChild(&ret, *$6);
+					nodeAddChild(&ret, emptyNode);
+					nodeAddChild(&ret, *$6);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-		|		"func" TOK_IDENT "(" params ")" "{" scope "}"										{
-																										AstNode	ret = createNode(TYPE_FUNC_DECL, strdup($2), 2);
+	|			"func" TOK_IDENT "(" params ")" "{" scope "}"
+				{
+					AstNode	ret = createNode(TYPE_FUNC_DECL, strdup($2), 2);
 
-																										nodeAddChild(&ret, *$4);
-																										nodeAddChild(&ret, *$7);
+					nodeAddChild(&ret, *$4);
+					nodeAddChild(&ret, *$7);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-params:		TOK_IDENT																				{
-																										AstNode	ret		= createNode(TYPE_PARAMS, "", 1),
-																												iden	= createNode(TYPE_IDENT, strdup($1), 0);
+params:			TOK_IDENT
+				{
+					AstNode	ret		= createNode(TYPE_PARAMS, "", 1),
+							iden	= createNode(TYPE_IDENT, strdup($1), 0);
 
-																										nodeAddChild(&ret, iden);
+					nodeAddChild(&ret, iden);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-		|	params "," TOK_IDENT																	{
-																										AstNode	ret		= *$1,
-																												iden	= createNode(TYPE_IDENT, strdup($3), 0);
-																										
-																										nodeChildResize(&ret, ret.childNodesLen + 1);
-																										nodeAddChild(&ret, iden);
+	|			params "," TOK_IDENT
+				{
+					AstNode	ret		= *$1,
+							iden	= createNode(TYPE_IDENT, strdup($3), 0);
+					
+					nodeChildResize(&ret, ret.childNodesLen + 1);
+					nodeAddChild(&ret, iden);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 
-exprs:		expr																					{
-																										AstNode ret = createNode(TYPE_EXPRS, "", 1);
+exprs:			expr
+				{
+					AstNode ret = createNode(TYPE_EXPRS, "", 1);
 
-																										nodeAddChild(&ret, *$1);
+					nodeAddChild(&ret, *$1);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 	 
-	 |		exprs "," expr																			{
-																										AstNode	ret	= *$1;
+	 |			exprs "," expr
+				{
+					AstNode	ret	= *$1;
 
-																										nodeChildResize(&ret, ret.childNodesLen + 1);
-																										nodeAddChild(&ret, *$3);
+					nodeChildResize(&ret, ret.childNodesLen + 1);
+					nodeAddChild(&ret, *$3);
 
-																										$$ = ALLOC;
-																										*$$ = ret;
-																									}
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 %%
 
 void yyerror(const char *s)

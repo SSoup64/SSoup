@@ -1,15 +1,6 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
+#pragma once
 
-#include "../bytecode/Bytecode.h"
-#include "./Frame.h"
-#include "./Stack.h"
-#include "ParamsListStack.h"
-#include "SoupObjVar.h"
-#include "VirtualMachine.h"
+#include "./Run.h"
 
 int run(char *file)
 {

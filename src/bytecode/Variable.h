@@ -21,14 +21,4 @@ typedef struct Variable
 }
 Variable;
 
-Variable createVariable(char *name, VariableType type, unsigned int address)
-{
-	Variable ret =
-	{
-		strdup(name),
-		type,
-		address,
-	};
-
-	return ret;
-}
+Variable createVariable(char *name, VariableType type, unsigned int address);

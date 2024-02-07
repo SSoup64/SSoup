@@ -4,11 +4,11 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "./Variable.h"
-#include "./Func.h"
+#include "./Variable.c"
+#include "./Func.c"
 
-const int SCOPE_VARIABLE_LENGTH_ADDER = 8;
-const int SCOPE_FUNC_LENGTH_ADDER = 8;
+#define SCOPE_VARIABLE_LENGTH_ADDER 8
+#define SCOPE_FUNC_LENGTH_ADDER 8
 
 typedef enum ScopeType
 {
@@ -49,87 +49,8 @@ typedef struct Scope
 }
 Scope;
 
-void createScopeNull(Scope *newScope, char *name, ScopeType type)
-{
-	// Scope indices
-	newScope->scopeIndex = 0;
-	newScope->prevScopeIndex = 0;
-	
-	// The name of the scope
-	newScope->scopeName = strdup(name);
-	newScope->scopePath = "";
-	
-	// The type of the scope
-	newScope->type = type;
-
-	// The variables
-	newScope->variablesLength = 1;
-	newScope->variablesOccupied = 0;
-	newScope->variables = (Variable *) malloc(sizeof(Variable));
-	
-	// The functions
-	newScope->funcsLength = 1;
-	newScope->funcsOccupied = 0;
-	newScope->funcsIndices = (unsigned int *) malloc(sizeof(unsigned int));
-}
-
-void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScopeIndex, char *name, char *path, ScopeType type)
-{
-	newScope->scopeIndex = scopeIndex;
-	newScope->prevScopeIndex = prevScopeIndex;
-
-	newScope->scopeName = strdup(name);
-	newScope->scopePath = strdup(path);
-
-	newScope->type = type;
-
-	newScope->variablesLength = 1;
-	newScope->variablesOccupied = 0;
-	newScope->variables = (Variable *) malloc(sizeof(Variable));
-
-	newScope->funcsLength = 1;
-	newScope->funcsOccupied = 0;
-	newScope->funcsIndices = (unsigned int *) malloc(sizeof(unsigned int));
-}
-
-Variable *scopeAddVariable(Scope *scope, char *name, VariableType type)
-{
-	// TODO: Test if the variable is already initialized and print an error message if it is.
-	
-	if (scope->variablesOccupied + 1 >= scope->variablesLength)
-	{
-		scope->variablesLength += SCOPE_VARIABLE_LENGTH_ADDER;
-		scope->variables = (Variable *) realloc(scope->variables, sizeof(Variable) * scope->variablesLength);
-	}
-
-	scope->variables[scope->variablesOccupied] = createVariable(name, type, scope->variablesOccupied);
-	scope->variablesOccupied++;
-
-	return &scope->variables[scope->variablesOccupied - 1];
-}
-
-Variable *scopeGetVariable(Scope *scope, char *name)
-{
-	Variable *ret = NULL;
-
-	for (unsigned int i = 0; i < scope->variablesOccupied; i++)
-	{
-		if (strcmp(scope->variables[i].name, name) == 0)
-		{
-			ret = &scope->variables[i];
-		}
-	}
-
-	return ret;
-}
-
-void scopeAddFuncIndex(Scope *scope, unsigned int index)
-{
-	if (scope->funcsOccupied + 1 >= scope->funcsLength)
-	{
-		scope->funcsLength += SCOPE_FUNC_LENGTH_ADDER;
-		scope->funcsIndices = (unsigned int *) realloc(scope->funcsIndices, sizeof(unsigned int) * scope->funcsLength);
-	}
-
-	scope->funcsIndices[scope->funcsOccupied++] = index;
-}
+void createScopeNull(Scope *newScope, char *name, ScopeType type);
+void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScopeIndex, char *name, char *path, ScopeType type);
+Variable *scopeAddVariable(Scope *scope, char *name, VariableType type);
+Variable *scopeGetVariable(Scope *scope, char *name);
+void scopeAddFuncIndex(Scope *scope, unsigned int index);
