@@ -5,9 +5,12 @@ NOP					- Placeholder instruction.
 PUSH_INT $x			- Pushes the integer x onto the stack.
 PUSH_FLOAT $x		- Pushes the float x onto the stack.
 PUSH_STRING $x		- Pushes the string x onto the stack.
-PUSH_MEM $x			- Pushes the value at address x onto the stack.
 
-POP $x				- Pops the top value on the stack and saves it at address x.
+I_PUSH_GLOBAL $x 	- Pushes the value of the global variable with address $x
+I_PUSH_LOCAL $x 	- Pushes the value of the local variable with address $x
+
+I_POP_GLOBAL $x 	- Pops the top value of the stack and puts it in the global variable with address $x
+I_POP_LOCAL $x 		- Pops the top value of the stack and puts it in the local variable with address $x
 
 OP_PLUS				- Pops the 2 top values on the stack, applies the + operators to them and pushes the result to the stack.
 OP_STAR				- Pops the 2 top values on the stack, applies the * operators to them and pushes the result to the stack.

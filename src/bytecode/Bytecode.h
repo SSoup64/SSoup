@@ -7,9 +7,12 @@ typedef enum Bytecode
 	I_PUSH_INT,
 	I_PUSH_DOUBLE,
 	I_PUSH_STRING,
-	I_PUSH_MEM,
+	
+	I_PUSH_GLOBAL,
+	I_PUSH_LOCAL,
 
-	I_POP,
+	I_POP_GLOBAL,
+	I_POP_LOCAL,
 
 	I_OP_PLUS,
 	I_OP_STAR,
@@ -27,5 +30,6 @@ typedef enum Bytecode
 	I_PL_APPEND,
 
 	I_RETURN,
-} Bytecode;
+}
+Bytecode;
 
