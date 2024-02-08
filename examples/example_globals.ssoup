@@ -1,6 +1,18 @@
 let i;
 
+func test()
+{
+	let i;
+	i = 5;
+
+	print(i);
+}
+
 func main()
 {
 	i = 4;
+
+	print(i);
+	test();
+	print(i);
 }

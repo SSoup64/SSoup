@@ -20,20 +20,29 @@ typedef struct VirtualMachine
 
 	unsigned int framesLen, framesOccupied;
 	Frame *frames;
-
+	
 	Frame *frame;
+	Frame *globalFrame;
 
 	Stack stack;
 
 	SoupObjVar oprandLeft, oprandRight, objectBuffer;
 	
 	ParamsListStack *paramsStack;
-} VirtualMachine;
+}
+VirtualMachine;
 
 VirtualMachine createVirtualMachine(char *code);
+
 void virtualMachinePushFrame(VirtualMachine *machine);
 void virtualMachinePopFrame(VirtualMachine *machine);
+
 unsigned char virtualMachineAdvance(VirtualMachine *machine);
+
 bool virtualMachineValidateBytes(VirtualMachine *machine);
+
 void virtualMachinePushParamsList(VirtualMachine *machine);
 void virtualMachinePopParamsList(VirtualMachine *machine);
+
+
+

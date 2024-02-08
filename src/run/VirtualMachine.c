@@ -19,6 +19,7 @@ VirtualMachine createVirtualMachine(char *code)
 	ret.framesOccupied = 1;
 
 	ret.frame = &ret.frames[0];
+	ret.globalFrame = &ret.frames[0];
 
 	ret.stack = createStack();
 

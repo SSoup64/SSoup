@@ -230,8 +230,7 @@ int run(char *file)
 
 				break;
 
-			case (unsigned char) I_POP:
-				
+			case (unsigned char) I_POP_LOCAL:
 				address = 0;
 
 				for (i = 0; i < sizeof(unsigned int); i++)
@@ -247,7 +246,23 @@ int run(char *file)
 				frameSetObjAt(machine.frame, address, machine.objectBuffer);
 				break;
 
-			case (unsigned char) I_PUSH_MEM:
+			case (unsigned char) I_POP_GLOBAL:
+				address = 0;
+
+				for (i = 0; i < sizeof(unsigned int); i++)
+				{
+					virtualMachineAdvance(&machine);
+
+					address <<= 8;
+					address += machine.thisChar;
+				}
+
+				machine.objectBuffer = stackPop(&machine.stack);
+
+				frameSetObjAt(machine.globalFrame, address, machine.objectBuffer);
+				break;
+
+			case (unsigned char) I_PUSH_LOCAL:
 				address = 0;
 
 				for (i = 0; i < sizeof(unsigned int); i++)
@@ -259,6 +274,22 @@ int run(char *file)
 				}
 
 				machine.objectBuffer = frameGetObjAt(machine.frame, address);
+				
+				stackPush(&machine.stack, machine.objectBuffer);
+				break;
+
+			case (unsigned char) I_PUSH_GLOBAL:
+				address = 0;
+
+				for (i = 0; i < sizeof(unsigned int); i++)
+				{
+					virtualMachineAdvance(&machine);
+
+					address <<= 8;
+					address += machine.thisChar;
+				}
+
+				machine.objectBuffer = frameGetObjAt(machine.globalFrame, address);
 				
 				stackPush(&machine.stack, machine.objectBuffer);
 				break;
