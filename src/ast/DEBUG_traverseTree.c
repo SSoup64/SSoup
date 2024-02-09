@@ -2,6 +2,11 @@
 
 #include "./DEBUG_traverseTree.h"
 
+/*
+Converts a given node's type to a string.
+Input: The type of the node.
+Output: The string corresponding to the type of the node.
+ */
 const char *NodeTypeToString(NodeType type)
 {
 	switch (type)
@@ -66,6 +71,11 @@ const char *NodeTypeToString(NodeType type)
 	return "Unknown type";
 }
 
+/*
+Prints a given amount of tabs onto the screen.
+Input: The amout of tabs to print.
+Output: None.
+*/
 void insertTabs(int tabs)
 {
     int i = 0;
@@ -76,6 +86,11 @@ void insertTabs(int tabs)
 	}
 }
 
+/*
+Prints the AST starting from a specified AST node,
+Input: The AST node to start printing the tree from, how many tabs more from the last layer each will layer be.
+Output: None.
+*/
 void traverseTree(AstNode node, int indent)
 {
 	int i = 0;

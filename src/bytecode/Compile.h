@@ -11,7 +11,5 @@
 #include "./Scope.c"
 #include "./Variable.c"
 
-#define BYTE_SIZE_IN_BITS 8
-
 void compile(Compiler *compiler, AstNode *node);
 void startCompile(Compiler *compiler, AstNode *node);

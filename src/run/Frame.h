@@ -5,6 +5,8 @@
 
 #include "./SoupObjVar.c"
 
+#define FRAME_OBJECTS_LENGTH_ADDER 8
+
 typedef struct Frame
 {
 	unsigned int thisFrameIndex;

@@ -1,5 +1,7 @@
 #pragma once
 
+#define BYTE_SIZE_IN_BITS 8
+
 typedef enum Bytecode
 {
 	I_NOP,

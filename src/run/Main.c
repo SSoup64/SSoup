@@ -3,9 +3,11 @@
 
 #include "./Run.c"
 
+#define ARGS_COUNT 2
+
 int main(int argc, char **argv)
 {
-	assert(argc >= 2);
+	assert(ARGS_COUNT == argc);
 	
 	run(strdup(argv[1]));
 }

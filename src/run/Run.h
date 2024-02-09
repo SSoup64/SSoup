@@ -13,4 +13,4 @@
 #include "./SoupObjVar.c"
 #include "./VirtualMachine.c"
 
-int run(char *file);
+bool run(char *file);

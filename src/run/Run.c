@@ -2,7 +2,12 @@
 
 #include "./Run.h"
 
-int run(char *file)
+/*
+The function that runs the entire bytecode.
+Input: The file to read the bytecode form.
+Output: true if successful, false if not.
+*/
+bool run(char *file)
 {
 	// Define variables
 	VirtualMachine machine = createVirtualMachine(file);
@@ -17,15 +22,19 @@ int run(char *file)
 	unsigned int strBufferLen = 0;
 	char *strBuffer = (char *) malloc(sizeof(char));
 
+	bool halt = false;
+	bool error = false;
+
 	// Read the validation bytes
 	if (!virtualMachineValidateBytes(&machine))
 	{
 		fprintf(stderr, "ERROR: Tried to run a file which is not in the correct format.\n");
-		exit(1);
+		halt = true;
+		error = true;
 	}
 	
 	// Run the code
-	for (;;)
+	while (!halt)
 	{
 		virtualMachineAdvance(&machine);
 
@@ -41,7 +50,7 @@ int run(char *file)
 				{
 					virtualMachineAdvance(&machine);
 
-					bytesBuffer <<= 8;
+					bytesBuffer <<= BYTE_SIZE_IN_BITS;
 					bytesBuffer += machine.thisChar;
 				}
 
@@ -93,7 +102,8 @@ int run(char *file)
 				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the + operator on different types.");
-					exit(1);
+					halt = true;
+					error = true;
 				}
 
 				// Switch the type of the oprands
@@ -111,7 +121,8 @@ int run(char *file)
 
 					default:
 						fprintf(stderr, "ERROR: Tried using + on an unsupported type.\n");
-						exit(1);
+						halt = true;
+						error = true;
 						break;
 				}
 				
@@ -129,7 +140,8 @@ int run(char *file)
 				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the - operator on different types.\n");
-					exit(1);
+					halt = true;
+					error = true;
 				}
 
 				// Switch the type of the oprands
@@ -142,7 +154,8 @@ int run(char *file)
 
 					default:
 						fprintf(stderr, "ERROR: Tried using - on an unsupported type.\n");
-						exit(1);
+						halt = true;
+						error = true;
 						break;
 				}
 
@@ -160,7 +173,8 @@ int run(char *file)
 				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the * operator on different types.\n");
-					exit(1);
+					halt = true;
+					error = true;
 				}
 
 				// Switch the type of the oprands
@@ -173,7 +187,8 @@ int run(char *file)
 
 					default:
 						fprintf(stderr, "ERROR: Tried using * on an unsupported type.\n");
-						exit(1);
+						halt = true;
+						error = true;
 						break;
 				}
 
@@ -191,7 +206,8 @@ int run(char *file)
 				if (machine.oprandLeft.type != machine.oprandRight.type)
 				{
 					fprintf(stderr, "ERROR: Tried to use the / operator on different types.\n");
-					exit(1);
+					halt = true;
+					error = true;
 				}
 
 				// Switch the type of the oprands
@@ -204,7 +220,8 @@ int run(char *file)
 
 					default:
 						fprintf(stderr, "ERROR: Tried using / on an unsupported type.\n");
-						exit(1);
+						halt = true;
+						error = true;
 						break;
 				}
 
@@ -237,7 +254,7 @@ int run(char *file)
 				{
 					virtualMachineAdvance(&machine);
 
-					address <<= 8;
+					address <<= BYTE_SIZE_IN_BITS;
 					address += machine.thisChar;
 				}
 
@@ -253,7 +270,7 @@ int run(char *file)
 				{
 					virtualMachineAdvance(&machine);
 
-					address <<= 8;
+					address <<= BYTE_SIZE_IN_BITS;
 					address += machine.thisChar;
 				}
 
@@ -269,7 +286,7 @@ int run(char *file)
 				{
 					virtualMachineAdvance(&machine);
 
-					address <<= 8;
+					address <<= BYTE_SIZE_IN_BITS;
 					address += machine.thisChar;
 				}
 
@@ -285,7 +302,7 @@ int run(char *file)
 				{
 					virtualMachineAdvance(&machine);
 
-					address <<= 8;
+					address <<= BYTE_SIZE_IN_BITS;
 					address += machine.thisChar;
 				}
 
@@ -306,7 +323,7 @@ int run(char *file)
 				{
 					virtualMachineAdvance(&machine);
 
-					address <<= 8;
+					address <<= BYTE_SIZE_IN_BITS;
 					address += machine.thisChar;
 				}
 
@@ -322,7 +339,7 @@ int run(char *file)
 				{
 					virtualMachineAdvance(&machine);
 
-					address <<= 8;
+					address <<= BYTE_SIZE_IN_BITS;
 					address += machine.thisChar;
 				}
 
@@ -363,8 +380,11 @@ int run(char *file)
 
 			default:
 				fprintf(stderr, "ERROR: Encountered an unknown instruction %X.\n", machine.thisChar);
+				halt = true;
+				error = true;
 				break;
 		}
 	}
-	return 0;
+
+	return error;
 }

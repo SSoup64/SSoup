@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./VirtualMachine.h"
+#include "Frame.h"
 
 VirtualMachine createVirtualMachine(char *code)
 {
@@ -48,6 +49,9 @@ void virtualMachinePushFrame(VirtualMachine *machine)
 	{
 		machine->framesLen += VIRTUAL_MACHINE_FRAMES_LENGTH_ADDER;
 		machine->frames = (Frame *) realloc(machine->frames, machine->framesLen * sizeof(Frame));
+
+		// Since we did a realloc, the address of the array may change, so we need to reconifgure the virtual machine's globalFrame
+		machine->globalFrame = &machine->frames[0];
 	}
 
 	machine->frames[machine->framesOccupied] = createFrame(machine->framesOccupied, thisFrameIndex);

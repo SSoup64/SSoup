@@ -297,7 +297,7 @@ exprs:			expr
 					*$$ = ret;
 				}
 	 
-	 |			exprs "," expr
+	|			exprs "," expr
 				{
 					AstNode	ret	= *$1;
 
