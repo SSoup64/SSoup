@@ -2,6 +2,11 @@
 
 #include "./Stack.h"
 
+/*
+Creates a program stack.
+Input: None.
+Output: The struct of the program stack.
+ */
 Stack createStack()
 {
 	Stack ret =
@@ -13,6 +18,11 @@ Stack createStack()
 	return ret;
 }
 
+/*
+Pushes an object on top of the stack.
+Input: A pointer to the stack to push the value to, the value to push onto the stack.
+Output: None.
+*/
 void stackPush(Stack *stack, SoupObjVar value)
 {
 	StackNode *newNode = (StackNode *) malloc(sizeof(StackNode));
@@ -21,10 +31,13 @@ void stackPush(Stack *stack, SoupObjVar value)
 	newNode->value = value;
 
 	stack->top = newNode;
-
-	// printf("PUSHING %lf\n", stack->top->value.fVal);
 }
 
+/*
+Pops the top value from a given stack.
+Input: The stack to pop the top value off.
+Output: The value that was popped off the stack.
+*/
 SoupObjVar stackPop(Stack *stack)
 {
 	SoupObjVar ret = stack->top->value;
@@ -34,18 +47,3 @@ SoupObjVar stackPop(Stack *stack)
 	return ret;
 }
 
-#ifdef DEBUG
-void DEBUG_stackPrint(Stack *stack)
-{
-	StackNode *curNode = stack->top;
-
-	printf("\n\nSTACK:\n");
-
-	while (curNode != NULL)
-	{
-		printf("%lf\n", curNode->value.fVal);
-		
-		curNode = curNode->prevNode;
-	}
-}
-#endif

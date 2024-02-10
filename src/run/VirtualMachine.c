@@ -3,6 +3,11 @@
 #include "./VirtualMachine.h"
 #include "Frame.h"
 
+/*
+Creates a virtual machine struct.
+Input: The path to the file containing the code.
+Output: The virtual machine struct.
+*/
 VirtualMachine createVirtualMachine(char *code)
 {
 	VirtualMachine ret;
@@ -41,6 +46,11 @@ VirtualMachine createVirtualMachine(char *code)
 	return ret;
 }
 
+/*
+Pushes a new frame of refrence to a given virtual machine.
+Input: A pointer to the virtual machine.
+Output: None.
+*/
 void virtualMachinePushFrame(VirtualMachine *machine)
 {
 	unsigned int thisFrameIndex = machine->frame->thisFrameIndex;
@@ -60,17 +70,32 @@ void virtualMachinePushFrame(VirtualMachine *machine)
 	machine->framesOccupied++;
 }
 
+/*
+Pops the top most frame from a virtual machine
+Input: A pointer to the virtual machine.
+Output: None.
+*/
 void virtualMachinePopFrame(VirtualMachine *machine)
 {
 	machine->frame = &machine->frames[machine->frame->lastFrameIndex];
 }
 
+/*
+Reads the next byte from the code file of a given virtual machine.
+Input: A pointer to the virtual machine.
+Output: The byte that was read.
+*/
 unsigned char virtualMachineAdvance(VirtualMachine *machine)
 {
 	machine->thisChar = fgetc(machine->code);
 	return machine->thisChar;
 }
 
+/*
+Determines whether or not the source file of a given virtual machine is a SSoup executable.
+Input: A pointer to the virtual machine.
+Output: 'true' if the file is a SSoup executable, 'false' if not.
+*/
 bool virtualMachineValidateBytes(VirtualMachine *machine)
 {
 	char validationBytes[VALIDATION_BYTES_LEN + 1] = "****";
@@ -85,11 +110,21 @@ bool virtualMachineValidateBytes(VirtualMachine *machine)
 	return (strcmp(validationBytes, "SOUP") == 0);
 }
 
+/*
+Pushes a new parameter list to a given virtual machine.
+Input: The pointer to the virtual machine.
+Output: None.
+ */
 void virtualMachinePushParamsList(VirtualMachine *machine)
 {
 	machine->paramsStack = createParamsListStack(machine->paramsStack);
 }
 
+/*
+Pops the parameter list of a given virtual machine.
+Input: The pointer to the virtual machine.
+Output: None.
+ */
 void virtualMachinePopParamsList(VirtualMachine *machine)
 {
 	machine->paramsStack = machine->paramsStack->previousParamsList;
