@@ -20,6 +20,7 @@ typedef enum NodeType
 	TYPE_FUNC_CALL,
 	TYPE_EXPRS,
 	TYPE_RETURN,
+	TYPE_ACCESS_SCOPE,
 }
 NodeType;
 

@@ -1,0 +1,12 @@
+let i;
+i = 0;
+
+func main()
+{
+	let i;
+	i = 5;
+
+	print(global:i);
+	print(foo:bar:test);
+	print(std:io:get());
+}

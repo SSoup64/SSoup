@@ -17,6 +17,7 @@
 "func"								{ return TOK_FUNC; }
 "return"							{ return TOK_RETURN; }
 "print"								{ return TOK_DEBUG_PRINT; }
+"global"							{ return TOK_GLOBAL; }
 
 [A-Za-z_][A-Za-z0-9_]*				{ yylval.sVal = strdup(yytext); return TOK_IDENT; }
 [0-9]+(\.([0-9])+)?					{ yylval.sVal = strdup(yytext); return TOK_NUMBER; }
@@ -35,6 +36,7 @@
 "="									{ return TOK_EQ; }
 
 ";"									{ return TOK_SEMICOLONS; }
+":"									{ return TOK_COLONS; }
 
 ","									{ return TOK_COMMA; }
 

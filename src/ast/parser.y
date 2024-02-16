@@ -25,15 +25,16 @@
 
 %start root
 
-%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" TOK_FUNC "func" TOK_RETURN "return"
+%token <sVal>	TOK_LET "let" TOK_DEBUG_PRINT "print" TOK_FUNC "func" TOK_RETURN "return" TOK_GLOBAL "global"
 %token <sVal>	TOK_IDENT TOK_STR TOK_NUMBER
-%token <sVal>	TOK_SEMICOLONS ";" TOK_COMMA ","
+%token <sVal>	TOK_SEMICOLONS ";" TOK_COMMA "," TOK_COLONS ":"
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
 %token <sVal>	TOK_LPAREN "(" TOK_RPAREN ")" TOK_LCPAREN "{" TOK_RCPAREN "}"
 
-%type <nodeVal> root scope stmt expr var_decl var_assign func_decl params exprs
+%type <nodeVal> root scope stmt expr varDecl varAssign funcDecl params exprs scopeAccess funcCall
 
 %nonassoc		TOK_NUMBER TOK_STR TOK_IDENT TOK_SEMICOLONS
+%left			TOK_COLONS
 %left			TOK_COMMA
 %right			TOK_EQ
 %left			TOK_PLUS TOK_MINUS
@@ -66,7 +67,7 @@ scope:			%empty
 					*$$ = ret;
 				}
 
-	|			scope func_decl	
+	|			scope funcDecl	
 				{
 					AstNode ret = *$1;
 
@@ -78,7 +79,7 @@ scope:			%empty
 					*$$ = ret;
 				}
 
-stmt:			var_decl ";"	 																	
+stmt:			varDecl ";"	 																	
 				{
 					$$ = ALLOC;
 					*$$ = *$1;
@@ -90,7 +91,7 @@ stmt:			var_decl ";"
 					*$$ = *$1;
 				}
 
-	|			var_assign ";"																		
+	|			varAssign ";"																		
 				{
 					$$ = ALLOC
 					*$$ = *$1;
@@ -126,24 +127,10 @@ stmt:			var_decl ";"
 					*$$ = ret;
 				}
 
-expr:			TOK_IDENT "(" ")"
+expr:			funcCall
 				{
-					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1), emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
-
-					nodeAddChild(&ret, emptyNode);
-
 					$$ = ALLOC;
-					*$$ = ret;
-				}
-
-	|			TOK_IDENT "(" exprs ")"																
-				{
-					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1);
-
-					nodeAddChild(&ret, *$3);
-
-					$$ = ALLOC;
-					*$$ = ret;
+					*$$ = *$1;
 				}
 
 	|			expr "*" expr
@@ -220,7 +207,13 @@ expr:			TOK_IDENT "(" ")"
 					*$$ = ret;
 				}
 
-var_assign:		TOK_IDENT "=" expr
+	|			scopeAccess
+				{
+					$$ = ALLOC;
+					*$$ = *$1;
+				}
+
+varAssign:		TOK_IDENT "=" expr
 				{
 					AstNode ret = createNode(TYPE_VAR_ASSIGN, "", 2);
 
@@ -231,7 +224,7 @@ var_assign:		TOK_IDENT "=" expr
 					*$$ = ret;
 				}
 
-var_decl:		"let" TOK_IDENT
+varDecl:		"let" TOK_IDENT
 				{
 					AstNode ret = createNode(TYPE_VAR_DECL, "", 1);
 
@@ -241,7 +234,7 @@ var_decl:		"let" TOK_IDENT
 					*$$ = ret;
 				}
 
-func_decl:		"func" TOK_IDENT "(" ")" "{" scope "}"
+funcDecl:		"func" TOK_IDENT "(" ")" "{" scope "}"
 				{
 					AstNode	ret			= createNode(TYPE_FUNC_DECL, strdup($2), 2),
 							emptyNode	= createNode(TYPE_EMPTY_NODE, "", 0);
@@ -307,6 +300,85 @@ exprs:			expr
 					$$ = ALLOC;
 					*$$ = ret;
 				}
+
+funcCall:		TOK_IDENT "(" ")"
+				{
+					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1), emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
+
+					nodeAddChild(&ret, emptyNode);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
+	|			TOK_IDENT "(" exprs ")"																
+				{
+					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1);
+
+					nodeAddChild(&ret, *$3);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
+scopeAccess:	TOK_IDENT ":" funcCall
+				{
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, $1, 1);
+					
+					nodeAddChild(&ret, *$3);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
+	|			TOK_IDENT ":" TOK_IDENT
+				{
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, $1, 1);
+					AstNode ident = createNode(TYPE_IDENT, strdup($3), 0);
+					
+					nodeAddChild(&ret, ident);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
+	|			"global" ":" funcCall
+				{
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup("root"), 1);
+					
+					nodeAddChild(&ret, *$3);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
+	|			"global" ":" TOK_IDENT
+				{
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup("root"), 1);
+					AstNode ident = createNode(TYPE_IDENT, strdup($3), 0);
+					
+					nodeAddChild(&ret, ident);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
+	|			TOK_IDENT ":" scopeAccess
+				{
+					if (strcmp($3->sVal, "root") == 0)
+					{
+						fprintf(stderr, "ERROR: Unexpected \"global\" token.\n");
+						YYABORT;
+					}
+
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup($1), 1);
+
+					nodeAddChild(&ret, *$3);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
 %%
 
 void yyerror(const char *s)

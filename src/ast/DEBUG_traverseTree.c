@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./DEBUG_traverseTree.h"
+#include "AstNode.h"
 
 /*
 Converts a given node's type to a string.
@@ -65,6 +66,10 @@ const char *NodeTypeToString(NodeType type)
 
 		case TYPE_RETURN:
 			return "Return";
+			break;
+
+		case TYPE_ACCESS_SCOPE:
+			return "Access scope";
 			break;
 	}
 

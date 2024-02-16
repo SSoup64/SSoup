@@ -256,6 +256,9 @@ void compile(Compiler *compiler, AstNode *node)
 			compile(compiler, &node->childNodes[0]);
 			compilerAppendBytecode(compiler, (unsigned char) I_RETURN);
 			break;
+
+		default:
+			break;
 	}
 }
 
