@@ -10,6 +10,13 @@
 #define COMPILER_SCOPES_LENGTH_ADDER 8
 #define COMPILER_GLOBAL_LENGTH_ADDER 8
 
+typedef enum VariableBytecode
+{
+	LOAD_TO_STACK,
+	SAVE_TO_VAR,
+}
+VariableBytecode;
+
 typedef struct Compiler
 {
 	unsigned int bytecodeLength, bytecodeUsed;
@@ -22,6 +29,8 @@ typedef struct Compiler
 
 	unsigned int globalVarsLength, globalVarsUsed;
 	Variable **globalVars;
+
+	VariableBytecode variableBytecode;
 }
 Compiler;
 

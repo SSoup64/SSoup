@@ -10,6 +10,7 @@
 #include "./Func.c"
 #include "./Scope.c"
 #include "./Variable.c"
+#include "./Compiler.h"
 
 void compile(Compiler *compiler, AstNode *node);
 void startCompile(Compiler *compiler, AstNode *node);

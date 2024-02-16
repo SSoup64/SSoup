@@ -15,4 +15,6 @@ func main()
 	buzz = "Test";
 
 	testFunc();
+
+	print(buzz);
 }

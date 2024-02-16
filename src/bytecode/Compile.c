@@ -93,20 +93,39 @@ void compile(Compiler *compiler, AstNode *node)
 			varPointer = compilerGetVariable(compiler, node->sVal);
 			address = varPointer->address;
 
-			// Add I_PUSH_GLOBAL/I_PUSH_LOCAL
-			switch (varPointer->type)
+			if (LOAD_TO_STACK == compiler->variableBytecode)
 			{
-				case VAR_TYPE_GLOBAL:
-					compilerAppendBytecode(compiler, (unsigned char) I_PUSH_GLOBAL);
-					break;
+				switch (varPointer->type)
+				{
+					case VAR_TYPE_GLOBAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_PUSH_GLOBAL);
+						break;
 
-				case VAR_TYPE_LOCAL:
-					compilerAppendBytecode(compiler, (unsigned char) I_PUSH_LOCAL);
-					break;
+					case VAR_TYPE_LOCAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_PUSH_LOCAL);
+						break;
 
-				default:
-					fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
-					break;
+					default:
+						fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
+						break;
+				}
+			}
+			else
+			{
+				switch (varPointer->type)
+				{
+					case VAR_TYPE_GLOBAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_POP_GLOBAL);
+						break;
+
+					case VAR_TYPE_LOCAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_POP_LOCAL);
+						break;
+
+					default:
+						fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
+						break;
+				}
 			}
 
 			// Add the address of the variable to the bytecode
@@ -124,31 +143,15 @@ void compile(Compiler *compiler, AstNode *node)
 		case TYPE_VAR_ASSIGN:
 			// Compile the RHS of the assignment
 			compile(compiler, &node->childNodes[1]);
-
-			// Get the variable.
-			varPointer = compilerGetVariable(compiler, node->childNodes[0].sVal);
-			address = varPointer->address;
-
-			switch (varPointer->type)
-			{
-				case VAR_TYPE_GLOBAL:
-					compilerAppendBytecode(compiler, (unsigned char) I_POP_GLOBAL);
-					break;
-
-				case VAR_TYPE_LOCAL:
-					compilerAppendBytecode(compiler, (unsigned char) I_POP_LOCAL);
-					break;
-
-				default:
-					fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
-					break;
-			}
-
-			// Add the address of the variable to the bytecode
-			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
-			{
-				compilerAppendBytecode(compiler, (unsigned char) (address >> BYTE_SIZE_IN_BITS * i));
-			}
+			
+			// Make the compiler save values to identifiers and not load them onto the stack
+			compiler->variableBytecode = SAVE_TO_VAR;
+		
+			// Compile the identifier
+			compile(compiler, &node->childNodes[0]);
+			
+			// Make the compiler load identifiers to the stack.
+			compiler->variableBytecode = LOAD_TO_STACK;
 			break;
 
 		case TYPE_DEBUG_PRINT:

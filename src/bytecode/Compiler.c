@@ -15,10 +15,10 @@ Compiler createCompiler()
 
 	ret.scopes = (Scope *) malloc(ret.scopesLength * sizeof(Scope));
 	
-	// Create the root scope
-	createScopeNull(&ret.scopes[0], "root", SCOPE_ROOT);
+	// Create the global scope
+	createScopeNull(&ret.scopes[0], "global", SCOPE_ROOT);
 	
-	// Set the current scope to be the root scope
+	// Set the current scope to be the global scope
 	ret.scope = &ret.scopes[0];
 	ret.scopesUsed = 1;
 
@@ -27,6 +27,8 @@ Compiler createCompiler()
 	ret.globalVarsUsed = 0;
 	
 	ret.globalVars = (Variable **) malloc(ret.globalVarsLength * sizeof(Variable *));
+
+	ret.variableBytecode = LOAD_TO_STACK;
 
 	return ret;
 }
