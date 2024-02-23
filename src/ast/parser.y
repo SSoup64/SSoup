@@ -31,7 +31,7 @@
 %token <sVal>	TOK_PLUS "+" TOK_MINUS "-" TOK_STAR "*" TOK_SLASH "/" TOK_EQ "="
 %token <sVal>	TOK_LPAREN "(" TOK_RPAREN ")" TOK_LCPAREN "{" TOK_RCPAREN "}"
 
-%type <nodeVal> root scope stmt expr varDecl varAssign funcDecl params exprs scopeAccess funcCall
+%type <nodeVal> root scope stmt expr varDecl varAssign funcDecl params exprs scopeAccess funcCall var
 
 %nonassoc		TOK_NUMBER TOK_STR TOK_IDENT TOK_SEMICOLONS
 %left			TOK_COLONS
@@ -99,7 +99,7 @@ stmt:			varDecl ";"
 
 	|			"print" "(" expr ")" ";"														
 				{
-					AstNode ret = createNode(TYPE_DEBUG_PRINT, "", 1);
+					AstNode ret = createNode(TYPE_DEBUG_PRINT, "", NODE_DEBUG_PRINT_SIZE);
 
 					nodeAddChild(&ret, *$3);
 
@@ -109,7 +109,7 @@ stmt:			varDecl ";"
 
 	|			"return" expr ";"																	
 				{
-					AstNode ret = createNode(TYPE_RETURN, "", 1);
+					AstNode ret = createNode(TYPE_RETURN, "", NODE_RETURN_SIZE);
 
 					nodeAddChild(&ret, *$2);
 
@@ -119,7 +119,7 @@ stmt:			varDecl ";"
 
 	|			"return" ";"																		
 				{
-					AstNode ret = createNode(TYPE_RETURN, "", 1), emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
+					AstNode ret = createNode(TYPE_RETURN, "", NODE_RETURN_SIZE), emptyNode = createNode(TYPE_EMPTY_NODE, "", NODE_RETURN_SIZE);
 
 					nodeAddChild(&ret, emptyNode);
 
@@ -135,7 +135,7 @@ expr:			funcCall
 
 	|			expr "*" expr
 				{
-					AstNode ret = createNode(TYPE_BINOP, "*", 2);
+					AstNode ret = createNode(TYPE_BINOP, "*", NODE_BINOP_SIZE);
 
 					nodeAddChild(&ret, *$1);
 					nodeAddChild(&ret, *$3);
@@ -146,7 +146,7 @@ expr:			funcCall
 
 	|			expr "/" expr
 				{
-					AstNode ret = createNode(TYPE_BINOP, "/", 2);
+					AstNode ret = createNode(TYPE_BINOP, "/", NODE_BINOP_SIZE);
 
 					nodeAddChild(&ret, *$1);
 					nodeAddChild(&ret, *$3);
@@ -157,7 +157,7 @@ expr:			funcCall
 
 	|			expr "+" expr
 				{
-					AstNode ret = createNode(TYPE_BINOP, "+", 2);
+					AstNode ret = createNode(TYPE_BINOP, "+", NODE_BINOP_SIZE);
 
 					nodeAddChild(&ret, *$1);
 					nodeAddChild(&ret, *$3);
@@ -168,7 +168,7 @@ expr:			funcCall
 
 	|			expr "-" expr
 				{
-					AstNode ret = createNode(TYPE_BINOP, "-", 2);
+					AstNode ret = createNode(TYPE_BINOP, "-", NODE_BINOP_SIZE);
 
 					nodeAddChild(&ret, *$1);
 					nodeAddChild(&ret, *$3);
@@ -185,7 +185,7 @@ expr:			funcCall
 
 	|			TOK_NUMBER
 				{
-					AstNode ret = createNode(TYPE_NUMBER, strdup($1), 0);
+					AstNode ret = createNode(TYPE_NUMBER, strdup($1), NODE_NUMBER_SIZE);
 
 					$$ = ALLOC;
 					*$$ = ret;
@@ -193,31 +193,23 @@ expr:			funcCall
 
 	|			TOK_STR
 				{
-					AstNode ret = createNode(TYPE_STR, strdup($1), 0);
+					AstNode ret = createNode(TYPE_STR, strdup($1), NODE_STRING_SIZE);
 
 					$$ = ALLOC;
 					*$$ = ret;
 				}
 	
-	|			TOK_IDENT
-				{
-					AstNode ret = createNode(TYPE_IDENT, strdup($1), 0);
-					
-					$$ = ALLOC;
-					*$$ = ret;
-				}
-
-	|			scopeAccess
+	|			var
 				{
 					$$ = ALLOC;
 					*$$ = *$1;
 				}
 
-varAssign:		TOK_IDENT "=" expr
+varAssign:		var "=" expr
 				{
-					AstNode ret = createNode(TYPE_VAR_ASSIGN, "", 2);
+					AstNode ret = createNode(TYPE_VAR_ASSIGN, "", NODE_VAR_ASSIGN_SIZE);
 
-					nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($1), 0));
+					nodeAddChild(&ret, *$1);
 					nodeAddChild(&ret, *$3);
 
 					$$ = ALLOC;
@@ -226,7 +218,7 @@ varAssign:		TOK_IDENT "=" expr
 
 varDecl:		"let" TOK_IDENT
 				{
-					AstNode ret = createNode(TYPE_VAR_DECL, "", 1);
+					AstNode ret = createNode(TYPE_VAR_DECL, "", NODE_VAR_DECL_SIZE);
 
 					nodeAddChild(&ret, createNode(TYPE_IDENT, strdup($2), 0));
 
@@ -236,7 +228,7 @@ varDecl:		"let" TOK_IDENT
 
 funcDecl:		"func" TOK_IDENT "(" ")" "{" scope "}"
 				{
-					AstNode	ret			= createNode(TYPE_FUNC_DECL, strdup($2), 2),
+					AstNode	ret			= createNode(TYPE_FUNC_DECL, strdup($2), NODE_FUNC_DECL_SIZE),
 							emptyNode	= createNode(TYPE_EMPTY_NODE, "", 0);
 
 					nodeAddChild(&ret, emptyNode);
@@ -248,7 +240,7 @@ funcDecl:		"func" TOK_IDENT "(" ")" "{" scope "}"
 
 	|			"func" TOK_IDENT "(" params ")" "{" scope "}"
 				{
-					AstNode	ret = createNode(TYPE_FUNC_DECL, strdup($2), 2);
+					AstNode	ret = createNode(TYPE_FUNC_DECL, strdup($2), NODE_FUNC_DECL_SIZE);
 
 					nodeAddChild(&ret, *$4);
 					nodeAddChild(&ret, *$7);
@@ -259,7 +251,7 @@ funcDecl:		"func" TOK_IDENT "(" ")" "{" scope "}"
 
 params:			TOK_IDENT
 				{
-					AstNode	ret		= createNode(TYPE_PARAMS, "", 1),
+					AstNode	ret		= createNode(TYPE_PARAMS, "", NODE_PARAMS_DEFAULT_SIZE),
 							iden	= createNode(TYPE_IDENT, strdup($1), 0);
 
 					nodeAddChild(&ret, iden);
@@ -282,7 +274,7 @@ params:			TOK_IDENT
 
 exprs:			expr
 				{
-					AstNode ret = createNode(TYPE_EXPRS, "", 1);
+					AstNode ret = createNode(TYPE_EXPRS, "", NODE_EXPRS_DEFAULT_SIZE);
 
 					nodeAddChild(&ret, *$1);
 
@@ -303,8 +295,9 @@ exprs:			expr
 
 funcCall:		TOK_IDENT "(" ")"
 				{
-					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1), emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
+					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), NODE_FUNC_CALL_SIZE), emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
 
+					nodeAddChild(&ret, emptyNode);
 					nodeAddChild(&ret, emptyNode);
 
 					$$ = ALLOC;
@@ -313,72 +306,82 @@ funcCall:		TOK_IDENT "(" ")"
 
 	|			TOK_IDENT "(" exprs ")"																
 				{
-					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), 1);
+					AstNode	ret = createNode(TYPE_FUNC_CALL, strdup($1), NODE_FUNC_CALL_SIZE);
+					AstNode emptyNode = createNode(TYPE_EMPTY_NODE, "", 0);
 
 					nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, emptyNode);
 
 					$$ = ALLOC;
 					*$$ = ret;
 				}
 
-scopeAccess:	TOK_IDENT ":" funcCall
+	|			scopeAccess funcCall
 				{
-					AstNode ret = createNode(TYPE_ACCESS_SCOPE, $1, 1);
+					$2->childNodes[NODE_FUNC_CALL_ARG_SCOPE] = *$1;
+
+					$$ = ALLOC;
+					*$$ = *$2;
+				}
+
+scopeAccess:	TOK_IDENT ":"
+				{
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, $1, NODE_ACCESS_SCOPE_SIZE);
+					AstNode empty = createNode(TYPE_EMPTY_NODE, "", NODE_EMPTY_SIZE);
 					
-					nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, empty);
 
 					$$ = ALLOC;
 					*$$ = ret;
 				}
 
-	|			TOK_IDENT ":" TOK_IDENT
+	|			"global" ":"
 				{
-					AstNode ret = createNode(TYPE_ACCESS_SCOPE, $1, 1);
-					AstNode ident = createNode(TYPE_IDENT, strdup($3), 0);
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup("global"), NODE_ACCESS_SCOPE_SIZE);
+					AstNode empty = createNode(TYPE_EMPTY_NODE, "", NODE_EMPTY_SIZE);
 					
-					nodeAddChild(&ret, ident);
+					nodeAddChild(&ret, empty);
 
 					$$ = ALLOC;
 					*$$ = ret;
 				}
 
-	|			"global" ":" funcCall
+	|			scopeAccess ":" TOK_IDENT
 				{
-					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup("root"), 1);
-					
-					nodeAddChild(&ret, *$3);
+					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup($3), NODE_ACCESS_SCOPE_SIZE);
 
-					$$ = ALLOC;
-					*$$ = ret;
-				}
-
-	|			"global" ":" TOK_IDENT
-				{
-					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup("root"), 1);
-					AstNode ident = createNode(TYPE_IDENT, strdup($3), 0);
-					
-					nodeAddChild(&ret, ident);
-
-					$$ = ALLOC;
-					*$$ = ret;
-				}
-
-	|			TOK_IDENT ":" scopeAccess
-				{
-					if (strcmp($3->sVal, "root") == 0)
+					if (strcmp($1->sVal, "global") == 0)
 					{
 						fprintf(stderr, "ERROR: Unexpected \"global\" token.\n");
 						YYABORT;
 					}
 
-					AstNode ret = createNode(TYPE_ACCESS_SCOPE, strdup($1), 1);
-
-					nodeAddChild(&ret, *$3);
+					nodeAddChild(&ret, *$1);
 
 					$$ = ALLOC;
 					*$$ = ret;
 				}
 
+var:			TOK_IDENT
+				{
+					AstNode ret = createNode(TYPE_VAR, strdup($1), NODE_VAR_SIZE);
+					AstNode emptyNode = createNode(TYPE_EMPTY_NODE, "", NODE_EMPTY_SIZE);
+					
+					nodeAddChild(&ret, emptyNode);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
+
+	|			scopeAccess TOK_IDENT
+				{
+					AstNode ret = createNode(TYPE_VAR, strdup($2), NODE_VAR_SIZE);
+					
+					nodeAddChild(&ret, *$1);
+
+					$$ = ALLOC;
+					*$$ = ret;
+				}
 %%
 
 void yyerror(const char *s)

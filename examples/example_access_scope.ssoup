@@ -1,0 +1,12 @@
+let foo;
+let bar;
+
+func main()
+{
+	let foo;
+
+	foo = 4;
+	global:foo = foo;
+
+	global:bar = global:foo * foo;
+}

@@ -1,0 +1,11 @@
+func test()
+{
+	return 1;
+}
+
+func main()
+{
+	let foo;
+
+	foo = global:buzz:test();
+}
