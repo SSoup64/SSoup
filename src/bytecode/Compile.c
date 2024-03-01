@@ -260,6 +260,54 @@ void compile(Compiler *compiler, AstNode *node)
 			compilerAppendBytecode(compiler, (unsigned char) I_RETURN);
 			break;
 
+		case TYPE_VAR:
+			// TODO: Add scopes
+			// Get the variable
+			varPointer = compilerGetVariable(compiler, node->sVal);
+			address = varPointer->address;
+
+			if (LOAD_TO_STACK == compiler->variableBytecode)
+			{
+				switch (varPointer->type)
+				{
+					case VAR_TYPE_GLOBAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_PUSH_GLOBAL);
+						break;
+
+					case VAR_TYPE_LOCAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_PUSH_LOCAL);
+						break;
+
+					default:
+						fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
+						break;
+				}
+			}
+			else
+			{
+				switch (varPointer->type)
+				{
+					case VAR_TYPE_GLOBAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_POP_GLOBAL);
+						break;
+
+					case VAR_TYPE_LOCAL:
+						compilerAppendBytecode(compiler, (unsigned char) I_POP_LOCAL);
+						break;
+
+					default:
+						fprintf(stderr, "ERROR: The variable %s is illegal.", varPointer->name);
+						break;
+				}
+			}
+
+			// Add the address of the variable to the bytecode
+			for (i = sizeof(unsigned int) - 1; i >= 0; i--)
+			{
+				compilerAppendBytecode(compiler, (unsigned char) (address >> BYTE_SIZE_IN_BITS * i));
+			}
+			break;
+
 		default:
 			break;
 	}

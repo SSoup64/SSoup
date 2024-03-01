@@ -71,6 +71,10 @@ const char *NodeTypeToString(NodeType type)
 		case TYPE_ACCESS_SCOPE:
 			return "Access scope";
 			break;
+
+		case TYPE_VAR:
+			return "Variable";
+			break;
 	}
 
 	return "Unknown type";

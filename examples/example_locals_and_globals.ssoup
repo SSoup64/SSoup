@@ -4,6 +4,7 @@ let bar;
 func testFunc()
 {
 	bar = 90;
+	foo = 10;
 }
 
 func main()
@@ -16,5 +17,7 @@ func main()
 
 	testFunc();
 
+	print(foo);
+	print(bar);
 	print(buzz);
 }
