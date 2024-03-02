@@ -109,8 +109,8 @@ void traverseTree(AstNode node, int indent)
 	printf("<%s> %s\n", NodeTypeToString(node.type), node.sVal);
 	
 	// Traverse the tree for all the child objects
-	for (i = 0; i < node.childNodesOccupied; i++)
+	for (i = 0; i < node.childNodes.listLen; i++)
 	{
-		traverseTree(node.childNodes[i], indent + 1);
+		traverseTree(listAstNodeGetAt(&node.childNodes, i), indent + 1);
 	}
 }

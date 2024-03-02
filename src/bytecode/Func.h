@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "../genericTypes/GenericList.c"
+
 typedef struct Func
 {
 	// The address of the function

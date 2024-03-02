@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../genericTypes/GenericList.c"
+
 #define NODE_DEBUG_PRINT_SIZE								1
 #define NODE_DEBUG_PRINT_ARG_ARG							0
 
@@ -69,11 +71,11 @@ typedef enum NodeType
 }
 NodeType;
 
+DECL_LIST_TYPE(struct AstNode, AstNode);
+
 typedef struct AstNode
 {
-	unsigned int childNodesLen;			// The length of the array
-	unsigned int childNodesOccupied;	// The number of cells that are already occupied in the array
-	struct AstNode *childNodes;			// The array of child nodes
+	ListAstNode childNodes;				// The child nodes
 	
 	char *sVal;							// The sVal string
 
@@ -83,6 +85,5 @@ AstNode;
 
 AstNode createNode(NodeType type, char *sVal, unsigned int childNodesLen);
 void nodeAddChild(AstNode *node, AstNode child);
-void nodeChildResize(AstNode *node, unsigned int size);
 
 

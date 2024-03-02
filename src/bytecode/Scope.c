@@ -2,6 +2,8 @@
 
 #include "./Scope.h"
 
+IMPL_LIST_TYPE(Scope, Scope);
+
 /*
 A function that creates the first scope.
 Input: pointer to the new scope, the scope's name, the scope's type.

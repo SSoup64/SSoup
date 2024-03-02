@@ -2,6 +2,8 @@
 
 #include "./AstNode.h"
 
+IMPL_LIST_TYPE(struct AstNode, AstNode);
+
 /*
 Creates an AST node.
 Input: The type of the node, it's value as a string, the number of children it has.
@@ -11,13 +13,9 @@ AstNode createNode(NodeType type, char *sVal, unsigned int childNodesLen)
 {
 	AstNode ret =	
 	{
-		childNodesLen,
-		0,
-		(AstNode *) malloc(sizeof(AstNode) * childNodesLen),
-		
-		strdup(sVal),
-
-		type
+		.childNodes = createListAstNodeSize(childNodesLen),
+		.sVal = strdup(sVal),
+		.type = type
 	};
 	
 	return ret;
@@ -30,28 +28,6 @@ Output: None.
 */
 void nodeAddChild(AstNode *node, AstNode child)
 {
-	node->childNodes[node->childNodesOccupied++] = child;
+	listAstNodeAppend(&node->childNodes, child);
 }
-
-/*
-Resizes the amount of children a node can have.
-Input: The pointer to the node to resize, the new size.
-Output: None.
-*/
-void nodeChildResize(AstNode *node, unsigned int size)
-{
-	node->childNodesLen = size;
-	node->childNodesOccupied = (size > node->childNodesOccupied) ? node->childNodesOccupied : size;
-
-	node->childNodes = (AstNode *) realloc(node->childNodes, size * sizeof(AstNode));
-}
-
-
-
-
-
-
-
-
-
 

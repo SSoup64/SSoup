@@ -56,10 +56,10 @@ void compile(Compiler *compiler, AstNode *node)
 
 		case TYPE_BINOP:
 			// Compile the left side
-			compile(compiler, &node->childNodes[0]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_BINOP_LVAL));
 
 			// Compile the right side
-			compile(compiler, &node->childNodes[1]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_BINOP_RVAL));
 
 			// Add the binop to the bytecode
 			// Also I just wanted to say that this code is really really REALLY fucking bad but I'll improve it later on because there are just 4 operators
@@ -82,9 +82,9 @@ void compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_SCOPE:
-			for (i = 0; i < node->childNodesOccupied; i++)
+			for (i = 0; i < node->childNodes.listLen; i++)
 			{
-				compile(compiler, &node->childNodes[i]);
+				compile(compiler, listAstNodeGetPtrAt(&node->childNodes, i));
 			}
 			break;
 
@@ -137,18 +137,18 @@ void compile(Compiler *compiler, AstNode *node)
 
 		case TYPE_VAR_DECL:
 			// Add the variable to the scope
-			compilerCreateVariable(compiler, compiler->scope, node->childNodes[0].sVal);
+			compilerCreateVariable(compiler, compiler->scope, listAstNodeGetAt(&node->childNodes, NODE_VAR_DECL_ARG_VAR).sVal);
 			break;
 
 		case TYPE_VAR_ASSIGN:
 			// Compile the RHS of the assignment
-			compile(compiler, &node->childNodes[1]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_VAR_ASSIGN_ARG_EXPR));
 			
 			// Make the compiler save values to identifiers and not load them onto the stack
 			compiler->variableBytecode = SAVE_TO_VAR;
-		
-			// Compile the identifier
-			compile(compiler, &node->childNodes[0]);
+
+			// Compile the variable
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_VAR_ASSIGN_ARG_VAR));
 			
 			// Make the compiler load identifiers to the stack.
 			compiler->variableBytecode = LOAD_TO_STACK;
@@ -156,7 +156,7 @@ void compile(Compiler *compiler, AstNode *node)
 
 		case TYPE_DEBUG_PRINT:
 			// Compile the expression inside the print
-			compile(compiler, &node->childNodes[0]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_DEBUG_PRINT_ARG_ARG));
 
 			// Add I_DEBUG_PRINT bytecode
 			compilerAppendBytecode(compiler, I_DEBUG_PRINT);
@@ -191,13 +191,13 @@ void compile(Compiler *compiler, AstNode *node)
 			*/
 
 			// Set the scopes current function
-			compilerSetCurScopeFunc(compiler, createFunc(compiler->bytecodeUsed, node->childNodes[0].childNodesOccupied));
+			compilerSetCurScopeFunc(compiler, createFunc(compiler->bytecodeUsed, listAstNodeGetAt(&node->childNodes, NODE_FUNC_DECL_ARG_ARGS).childNodes.listLen));
 
 			// Compile the parameter list
-			compile(compiler, &node->childNodes[0]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_FUNC_DECL_ARG_ARGS));
 
 			// Compile the code
-			compile(compiler, &node->childNodes[1]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_FUNC_DECL_ARG_CODE));
 
 			// Add a default return
 			compilerAppendBytecode(compiler, (unsigned char) I_RETURN);
@@ -214,21 +214,21 @@ void compile(Compiler *compiler, AstNode *node)
 			break;
 
 		case TYPE_PARAMS:
-			for (i = 0; i < node->childNodesOccupied; i++)
+			for (i = 0; i < node->childNodes.listLen; i++)
 			{
-				compilerCreateVariable(compiler, compiler->scope, strdup(node->childNodes[i].sVal));
+				compilerCreateVariable(compiler, compiler->scope, strdup(listAstNodeGetAt(&node->childNodes, i).sVal));
 			}
 			break;
 
 		case TYPE_FUNC_CALL:
 			// Find the address of the function
-			address = compilerFindFuncAddress(compiler, compiler->scope, strdup(node->sVal), node->childNodes[0].childNodesOccupied);
+			address = compilerFindFuncAddress(compiler, compiler->scope, strdup(node->sVal), listAstNodeGetAt(&node->childNodes, NODE_FUNC_CALL_ARG_ARGS).childNodes.listLen);
 
 			// Create a new parameter list
 			compilerAppendBytecode(compiler, (unsigned char) I_NPL);
 
 			// Compile the expressions
-			compile(compiler, &node->childNodes[0]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_FUNC_CALL_ARG_ARGS));
 
 			// Add a JMPF instruction
 			compilerAppendBytecode(compiler, (unsigned char) I_JMPF);
@@ -242,9 +242,9 @@ void compile(Compiler *compiler, AstNode *node)
 
 		case TYPE_EXPRS:
 			// TODO: Make the expressions compile differently depending whether they are compiled for function calls or something else.
-			for (i = 0; i < node->childNodesOccupied; i++)
+			for (i = 0; i < node->childNodes.listLen; i++)
 			{
-				compile(compiler, &node->childNodes[i]);
+				compile(compiler, listAstNodeGetPtrAt(&node->childNodes, i));
 				compilerAppendBytecode(compiler, (unsigned char) I_PL_APPEND);
 			}
 			break;
@@ -256,7 +256,7 @@ void compile(Compiler *compiler, AstNode *node)
 				exit(1);
 			}
 
-			compile(compiler, &node->childNodes[0]);
+			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_RETURN_ARG_RETURNED));
 			compilerAppendBytecode(compiler, (unsigned char) I_RETURN);
 			break;
 

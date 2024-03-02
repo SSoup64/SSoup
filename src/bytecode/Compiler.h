@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "./Scope.h"
+#include "./Scope.c"
 #include "./Bytecode.h"
-#include "Variable.h"
+#include "Variable.c"
 
 #define COMPILER_SCOPES_LENGTH_ADDER 8
 #define COMPILER_GLOBAL_LENGTH_ADDER 8

@@ -59,8 +59,6 @@ scope:			%empty
 				{
 					AstNode ret = *$1;
 
-					nodeChildResize(&ret, ret.childNodesLen + 1);
-
 					nodeAddChild(&ret, *$2);
 
 					$$ = ALLOC;
@@ -70,8 +68,6 @@ scope:			%empty
 	|			scope funcDecl	
 				{
 					AstNode ret = *$1;
-
-					nodeChildResize(&ret, ret.childNodesLen + 1);
 
 					nodeAddChild(&ret, *$2);
 
@@ -265,7 +261,6 @@ params:			TOK_IDENT
 					AstNode	ret		= *$1,
 							iden	= createNode(TYPE_IDENT, strdup($3), 0);
 					
-					nodeChildResize(&ret, ret.childNodesLen + 1);
 					nodeAddChild(&ret, iden);
 
 					$$ = ALLOC;
@@ -286,7 +281,6 @@ exprs:			expr
 				{
 					AstNode	ret	= *$1;
 
-					nodeChildResize(&ret, ret.childNodesLen + 1);
 					nodeAddChild(&ret, *$3);
 
 					$$ = ALLOC;
@@ -318,7 +312,7 @@ funcCall:		TOK_IDENT "(" ")"
 
 	|			scopeAccess funcCall
 				{
-					$2->childNodes[NODE_FUNC_CALL_ARG_SCOPE] = *$1;
+					listAstNodeSetAt(&$2->childNodes, NODE_FUNC_CALL_ARG_SCOPE, *$1);
 
 					$$ = ALLOC;
 					*$$ = *$2;

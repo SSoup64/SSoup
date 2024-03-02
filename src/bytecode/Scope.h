@@ -7,6 +7,8 @@
 #include "./Variable.c"
 #include "./Func.c"
 
+#include "../genericTypes/GenericList.c"
+
 #define SCOPE_VARIABLE_LENGTH_ADDER 8
 #define SCOPE_FUNC_LENGTH_ADDER 8
 
@@ -17,6 +19,8 @@ typedef enum ScopeType
 	SCOPE_FUNC,
 }
 ScopeType;
+
+DECL_LIST_TYPE(struct Scope, Scope);
 
 // Basically stores things about the current scope like variables.
 typedef struct Scope

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "../genericTypes/GenericList.c"
+
 typedef enum VariableType
 {
 	VAR_TYPE_LOCAL,		// Functions
@@ -10,6 +12,8 @@ typedef enum VariableType
 	VAR_TYPE_ATTR,		// Classes
 }
 VariableType;
+
+DECL_LIST_TYPE(struct Variable *, VariablePtr);
 
 typedef struct Variable
 {
