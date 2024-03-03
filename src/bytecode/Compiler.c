@@ -23,10 +23,7 @@ Compiler createCompiler()
 	ret.scopesUsed = 1;
 
 	// Set the globalVars array to an empty array.
-	ret.globalVarsLength = 0;
-	ret.globalVarsUsed = 0;
-	
-	ret.globalVars = (Variable **) malloc(ret.globalVarsLength * sizeof(Variable *));
+	ret.globalVars = createListVariablePtr();
 
 	ret.variableBytecode = LOAD_TO_STACK;
 
@@ -130,9 +127,9 @@ unsigned int compilerFindFuncAddress(Compiler *compiler, Scope *curScope, char *
 	unsigned int funcIndex = 0;
 	int i = 0;
 	
-	for (i = 0; i < curScope->funcsOccupied; i++)
+	for (i = 0; i < curScope->funcsIndices.listLen; i++)
 	{
-		funcIndex = curScope->funcsIndices[i];
+		funcIndex = listUintGetAt(&curScope->funcsIndices, i);
 
 		if (SCOPE_FUNC == compiler->scopes[funcIndex].type && strcmp(compiler->scopes[funcIndex].scopeName, name) == 0 && params == compiler->scopes[funcIndex].func.paramsLen)
 		{
@@ -175,14 +172,7 @@ void compilerCreateVariable(Compiler *compiler, Scope *curScope, char *name)
 
 	if (VAR_TYPE_GLOBAL == varType)
 	{
-		if (compiler->globalVarsUsed + 1 >= compiler->globalVarsLength)
-		{
-			compiler->globalVarsLength += COMPILER_GLOBAL_LENGTH_ADDER;
-			compiler->globalVars = (Variable **) realloc(compiler->globalVars, sizeof(Variable *) * compiler->globalVarsLength);
-		}
-
-		var->address = compiler->globalVarsUsed;
-		compiler->globalVars[compiler->globalVarsUsed++] = var;
+		listVariablePtrAppend(&compiler->globalVars, var);
 	}
 }
 

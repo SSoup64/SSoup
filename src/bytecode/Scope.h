@@ -8,6 +8,7 @@
 #include "./Func.c"
 
 #include "../genericTypes/GenericList.c"
+#include "../genericTypes/utilities.c"
 
 #define SCOPE_VARIABLE_LENGTH_ADDER 8
 #define SCOPE_FUNC_LENGTH_ADDER 8
@@ -41,12 +42,10 @@ typedef struct Scope
 	ScopeType type;
 
 	// The variables in the scope.
-	unsigned int variablesLength, variablesOccupied;
-	Variable *variables;
+	ListVariable variables;
 	
 	// The scope indices of the functions in the scope
-	unsigned int funcsLength, funcsOccupied;
-	unsigned int *funcsIndices;
+	ListUint funcsIndices;
 
 	// SCOPE_FUNC specific variable address.
 	Func func;

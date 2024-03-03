@@ -27,8 +27,7 @@ typedef struct Compiler
 
 	Scope *scope;
 
-	unsigned int globalVarsLength, globalVarsUsed;
-	Variable **globalVars;
+	ListVariablePtr globalVars;
 
 	VariableBytecode variableBytecode;
 }

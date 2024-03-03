@@ -13,6 +13,7 @@ typedef enum VariableType
 }
 VariableType;
 
+DECL_LIST_TYPE(struct Variable, Variable);
 DECL_LIST_TYPE(struct Variable *, VariablePtr);
 
 typedef struct Variable

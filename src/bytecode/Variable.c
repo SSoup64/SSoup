@@ -2,6 +2,7 @@
 
 #include "./Variable.h"
 
+IMPL_LIST_TYPE(Variable, Variable);
 IMPL_LIST_TYPE(Variable *, VariablePtr);
 
 /*
