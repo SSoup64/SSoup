@@ -7,24 +7,21 @@
 
 #include "./Frame.c"
 #include "./SoupObjVar.c"
-#include "./Stack.c"
 #include "./ParamsListStack.c"
 
 #define VALIDATION_BYTES_LEN 4
-#define VIRTUAL_MACHINE_FRAMES_LENGTH_ADDER 8
 
 typedef struct VirtualMachine
 {
 	FILE *code;
 	unsigned char thisChar;
-
-	unsigned int framesLen, framesOccupied;
-	Frame *frames;
+	
+	ListFrame frames;
 	
 	Frame *frame;
 	Frame *globalFrame;
-
-	Stack stack;
+	
+	StackSoupObjVar stack;
 
 	SoupObjVar oprandLeft, oprandRight, objectBuffer;
 	

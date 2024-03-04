@@ -3,26 +3,26 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define DECL_STACK_TYPE(_type, _typeName, _nameFunc) \
-	typedef struct _typeName ## Node \
+#define DECL_STACK_TYPE(_type, _name) \
+	typedef struct Stack ## _name ## Node \
 	{ \
 		_type val; \
-		struct _typeName ## Node *prevNode; \
+		struct Stack ## _name ## Node *prevNode; \
 	} \
-	_typeName ## Node; \
+	Stack ## _name ## Node; \
 	\
-	typedef struct _typeName \
+	typedef struct Stack ## _name \
 	{ \
-		_typeName ## Node *thisNode; \
+		Stack ## _name ## Node *thisNode; \
 	} \
-	_typeName; \
+	Stack ## _name; \
 	\
-	_typeName create ## _typeName(); \
+	Stack ## _name createStack ## _name(); \
 	\
-	_type *_nameFunc ## TopValuePtr(_typeName *stack); \
+	_type *stack ## _name ## TopValuePtr(Stack ## _name *stack); \
 	\
-	_type *_nameFunc ## Pop(_typeName *stack); \
-	void _nameFunc ## Push(_typeName *stack, _type val); \
+	_type stack ##_name ## Pop(Stack ## _name *stack); \
+	void stack ## _name ## Push(Stack ## _name *stack, _type val); \
 	\
-	bool _nameFunc ## CanPop(_typeName *stack);
+	bool stack ## _name ## CanPop(Stack ## _name *stack);
 

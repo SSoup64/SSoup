@@ -8,7 +8,6 @@
 
 #include "../bytecode/Bytecode.h"
 #include "./Frame.c"
-#include "./Stack.c"
 #include "./ParamsListStack.c"
 #include "./SoupObjVar.c"
 #include "./VirtualMachine.c"

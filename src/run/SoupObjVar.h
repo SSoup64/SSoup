@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../genericTypes/GenericList.c"
+#include "../genericTypes/GenericStack.c"
+
 typedef enum SoupObjVarType
 {
 	OBJ_TYPE_NONE,
@@ -17,3 +20,6 @@ typedef struct SoupObjVar
 	char *sVal;
 }
 SoupObjVar;
+
+DECL_LIST_TYPE(struct SoupObjVar, SoupObjVar);
+DECL_STACK_TYPE(struct SoupObjVar, SoupObjVar);

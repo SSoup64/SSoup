@@ -3,17 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../genericTypes/GenericList.c"
 #include "./SoupObjVar.c"
 
-#define FRAME_OBJECTS_LENGTH_ADDER 8
+DECL_LIST_TYPE(struct Frame, Frame);
 
 typedef struct Frame
 {
 	unsigned int thisFrameIndex;
 	unsigned int lastFrameIndex;
 
-	unsigned int objectsLength;
-	SoupObjVar *objects;
+	ListSoupObjVar objects;
 }
 Frame;
 

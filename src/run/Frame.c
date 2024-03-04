@@ -1,6 +1,9 @@
 #pragma once
 
 #include "./Frame.h"
+#include "SoupObjVar.h"
+
+IMPL_LIST_TYPE(Frame, Frame);
 
 /*
 A function that creates a new frame of refrence.
@@ -11,11 +14,10 @@ Frame createFrame(unsigned int thisFrameIndex, unsigned int lastFrameIndex)
 {
 	Frame ret =
 	{
-		thisFrameIndex,
-		lastFrameIndex,
-
-		1,
-		(SoupObjVar *) malloc(sizeof(SoupObjVar))
+		.thisFrameIndex = thisFrameIndex,
+		.lastFrameIndex = lastFrameIndex,
+		
+		.objects = createListSoupObjVar(),
 	};
 
 	return ret;
@@ -30,7 +32,7 @@ SoupObjVar frameGetObjAt(Frame *frame, unsigned int index)
 {
 	// fprintf(stderr, "ERROR: Tried to get unitialized object ot something idk.");
 
-	return frame->objects[index];
+	return listSoupObjVarGetAt(&frame->objects, index);
 }
 
 /*
@@ -40,15 +42,7 @@ Output: None.
 */
 void frameSetObjAt(Frame *frame, unsigned int index, SoupObjVar obj)
 {
-	// TODO:
-	// If the index causes there to be gaps in the arrays, fill them with a null value or something.
-	if (index >= frame->objectsLength)
-	{
-		frame->objectsLength = (frame->objectsLength + FRAME_OBJECTS_LENGTH_ADDER > index) ? frame->objectsLength + FRAME_OBJECTS_LENGTH_ADDER : index;
-		frame->objects = (SoupObjVar *) realloc(frame->objects, frame->objectsLength * sizeof(SoupObjVar));
-	}
-
-	frame->objects[index] = obj;
+	listSoupObjVarSetAt(&frame->objects, index, obj);
 }
 
 

@@ -7,9 +7,6 @@
 #include "./Bytecode.h"
 #include "Variable.c"
 
-#define COMPILER_SCOPES_LENGTH_ADDER 8
-#define COMPILER_GLOBAL_LENGTH_ADDER 8
-
 typedef enum VariableBytecode
 {
 	LOAD_TO_STACK,

@@ -5,12 +5,9 @@
 
 #include "./SoupObjVar.c"
 
-#define PARAMS_LIST_STACK_OBJECT_LENGTH_ADDER 8
-
 typedef struct ParamsListStack
 {
-	unsigned int objectsLength, objectsOccupied;
-	SoupObjVar *objects;
+	ListSoupObjVar objects;
 
 	struct ParamsListStack *previousParamsList;
 

@@ -10,9 +10,6 @@
 #include "../genericTypes/GenericList.c"
 #include "../genericTypes/utilities.c"
 
-#define SCOPE_VARIABLE_LENGTH_ADDER 8
-#define SCOPE_FUNC_LENGTH_ADDER 8
-
 typedef enum ScopeType
 {
 	SCOPE_ROOT,

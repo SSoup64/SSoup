@@ -1,6 +1,8 @@
 #pragma once
 
 #include "./Run.h"
+#include "SoupObjVar.h"
+#include <stdio.h>
 
 /*
 The function that runs the entire bytecode.
@@ -59,7 +61,7 @@ bool run(char *file)
 				machine.objectBuffer.type = OBJ_TYPE_FLOAT;
 				machine.objectBuffer.fVal = fVal;
 
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_PUSH_STRING:
@@ -88,15 +90,15 @@ bool run(char *file)
 				machine.objectBuffer.type = OBJ_TYPE_STRING;
 				machine.objectBuffer.sVal = strdup(strBuffer);
 
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_PLUS:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				machine.oprandRight	= stackPop(&machine.stack);
-				machine.oprandLeft	= stackPop(&machine.stack);
+				machine.oprandRight	= stackSoupObjVarPop(&machine.stack);
+				machine.oprandLeft	= stackSoupObjVarPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
 				if (machine.oprandLeft.type != machine.oprandRight.type)
@@ -126,15 +128,15 @@ bool run(char *file)
 						break;
 				}
 				
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_MINUS:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				machine.oprandRight	= stackPop(&machine.stack);
-				machine.oprandLeft	= stackPop(&machine.stack);
+				machine.oprandRight	= stackSoupObjVarPop(&machine.stack);
+				machine.oprandLeft	= stackSoupObjVarPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
 				if (machine.oprandLeft.type != machine.oprandRight.type)
@@ -159,15 +161,15 @@ bool run(char *file)
 						break;
 				}
 
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_STAR:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				machine.oprandRight	= stackPop(&machine.stack);
-				machine.oprandLeft	= stackPop(&machine.stack);
+				machine.oprandRight	= stackSoupObjVarPop(&machine.stack);
+				machine.oprandLeft	= stackSoupObjVarPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
 				if (machine.oprandLeft.type != machine.oprandRight.type)
@@ -192,15 +194,15 @@ bool run(char *file)
 						break;
 				}
 
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_OP_SLASH:
 				// Hard coded for now
 				
 				// Pop of the two top values from the stack
-				machine.oprandRight	= stackPop(&machine.stack);
-				machine.oprandLeft	= stackPop(&machine.stack);
+				machine.oprandRight	= stackSoupObjVarPop(&machine.stack);
+				machine.oprandLeft	= stackSoupObjVarPop(&machine.stack);
 
 				// Check if their type if the same, if not throw an error because casting doesn't exist yet
 				if (machine.oprandLeft.type != machine.oprandRight.type)
@@ -225,11 +227,11 @@ bool run(char *file)
 						break;
 				}
 
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_DEBUG_PRINT:
-				machine.objectBuffer = stackPop(&machine.stack);
+				machine.objectBuffer = stackSoupObjVarPop(&machine.stack);
 
 				switch (machine.objectBuffer.type)
 				{
@@ -258,7 +260,7 @@ bool run(char *file)
 					address += machine.thisChar;
 				}
 
-				machine.objectBuffer = stackPop(&machine.stack);
+				machine.objectBuffer = stackSoupObjVarPop(&machine.stack);
 
 				frameSetObjAt(machine.frame, address, machine.objectBuffer);
 				break;
@@ -274,7 +276,7 @@ bool run(char *file)
 					address += machine.thisChar;
 				}
 
-				machine.objectBuffer = stackPop(&machine.stack);
+				machine.objectBuffer = stackSoupObjVarPop(&machine.stack);
 
 				frameSetObjAt(machine.globalFrame, address, machine.objectBuffer);
 				break;
@@ -292,7 +294,7 @@ bool run(char *file)
 
 				machine.objectBuffer = frameGetObjAt(machine.frame, address);
 				
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_PUSH_GLOBAL:
@@ -308,7 +310,7 @@ bool run(char *file)
 
 				machine.objectBuffer = frameGetObjAt(machine.globalFrame, address);
 				
-				stackPush(&machine.stack, machine.objectBuffer);
+				stackSoupObjVarPush(&machine.stack, machine.objectBuffer);
 				break;
 
 			case (unsigned char) I_EXIT:
@@ -348,10 +350,11 @@ bool run(char *file)
 
 				// Push a new frame.
 				virtualMachinePushFrame(&machine);
-
-				for (i = 0; i <= machine.paramsStack->objectsOccupied; i++)
+				
+				// TODO: check if this is correct
+				for (i = 0; i < machine.paramsStack->objects.listLen; i++)
 				{
-					frameSetObjAt(machine.frame, i, machine.paramsStack->objects[i]);
+					frameSetObjAt(machine.frame, i, listSoupObjVarGetAt(&machine.paramsStack->objects, i));
 				}
 
 				// Jump to the address
@@ -363,7 +366,7 @@ bool run(char *file)
 				break;
 
 			case (unsigned char) I_PL_APPEND:
-				machine.objectBuffer = stackPop(&machine.stack);
+				machine.objectBuffer = stackSoupObjVarPop(&machine.stack);
 				paramsListStackPushObject(machine.paramsStack, machine.objectBuffer);
 				break;
 

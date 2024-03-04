@@ -1,12 +1,11 @@
 #pragma once
 
-#include <stdlib.h> 
 #include "./GenericStack.h" 
 
-#define IMPL_STACK_TYPE(_type, _typeName, _nameFunc) \
-	_typeName create ## _typeName() \
+#define IMPL_STACK_TYPE(_type, _name) \
+	Stack ## _name create ## Stack ## _name() \
 	{ \
-		_typeName ret = \
+		Stack ## _name ret = \
 		{ \
 			.thisNode = NULL, \
 		}; \
@@ -14,16 +13,17 @@
 		return ret; \
 	} \
 	\
-	_type *_nameFunc ## TopValuePtr(_typeName *stack) \
+	_type *stack ## _name ## TopValuePtr(Stack ## _name *stack) \
 	{ \
 		_type *topVal = &stack->thisNode->val; \
 		\
 		return topVal; \
 	} \
 	\
-	_type *_nameFunc ## Pop(_typeName *stack) \
+	_type stack ## _name ## Pop(Stack ## _name *stack) \
 	{ \
-		_typeName ## Node *topNode = stack->thisNode; \
+		Stack ## _name ## Node *topNode = stack->thisNode; \
+		_type ret = topNode->val; \
 		\
 		if (topNode != NULL) \
 		{ \
@@ -32,12 +32,12 @@
 			free(topNode); \
 		} \
 		\
-		return &topNode->val; \
+		return ret; \
 	} \
 	\
-	void _nameFunc ## Push(_typeName *stack, _type val) \
+	void stack ## _name ## Push(Stack ## _name *stack, _type val) \
 	{ \
-		_typeName ## Node *newNode = (_typeName ## Node *) malloc(sizeof(_typeName ## Node)); \
+		Stack ## _name ## Node *newNode = (Stack ## _name ## Node *) malloc(sizeof(Stack ## _name ## Node)); \
 		\
 		newNode->prevNode = stack->thisNode; \
 		newNode->val = val; \
@@ -45,7 +45,7 @@
 		stack->thisNode = newNode; \
 	} \
 	\
-	bool _nameFunc ## CanPop(_typeName *stack) \
+	bool stack ## _name ## CanPop(Stack ## _name *stack) \
 	{ \
 		bool ret = true; \
 		\

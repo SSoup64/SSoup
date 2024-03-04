@@ -10,38 +10,38 @@ Output: The virtual machine struct.
 */
 VirtualMachine createVirtualMachine(char *code)
 {
-	VirtualMachine ret;
+	VirtualMachine ret =
+	{
+		.code = fopen(code, "rb"),
+		.thisChar = ' ',
 
-	ret.code = fopen(code, "rb");
-	assert(ret.code != NULL);
+		.frames = createListFrame(),
 
-	ret.thisChar = ' ';
+		.frame = NULL,
+		.globalFrame = NULL,
 
-	ret.framesLen = 1;
-	ret.frames = (Frame *) malloc(sizeof(Frame));
+		.stack = createStackSoupObjVar(),
 
-	ret.frames[0] = createFrame(0, 0);
+		.objectBuffer.type = OBJ_TYPE_NONE,
+		.objectBuffer.fVal = 0,
+		.objectBuffer.sVal = "",
+
+		.oprandLeft.type = OBJ_TYPE_NONE,
+		.oprandLeft.fVal = 0,
+		.oprandLeft.sVal = "",
+
+		.oprandRight.type = OBJ_TYPE_NONE,
+		.oprandRight.fVal = 0,
+		.oprandRight.sVal = "",
+
+		.paramsStack = NULL, 
+	};
 	
-	ret.framesOccupied = 1;
+	listFrameAppend(&ret.frames, createFrame(0, 0));
+	ret.frame = listFrameGetPtrAt(&ret.frames, 0);
+	ret.globalFrame = listFrameGetPtrAt(&ret.frames, 0);
 
-	ret.frame = &ret.frames[0];
-	ret.globalFrame = &ret.frames[0];
-
-	ret.stack = createStack();
-
-	ret.objectBuffer.type = OBJ_TYPE_NONE;
-	ret.objectBuffer.fVal = 0;
-	ret.objectBuffer.sVal = "";
-
-	ret.oprandLeft.type = OBJ_TYPE_NONE;
-	ret.oprandLeft.fVal = 0;
-	ret.oprandLeft.sVal = "";
-
-	ret.oprandRight.type = OBJ_TYPE_NONE;
-	ret.oprandRight.fVal = 0;
-	ret.oprandRight.sVal = "";
-
-	ret.paramsStack = NULL; 
+	assert(ret.code != NULL);
 
 	return ret;
 }
@@ -55,19 +55,10 @@ void virtualMachinePushFrame(VirtualMachine *machine)
 {
 	unsigned int thisFrameIndex = machine->frame->thisFrameIndex;
 
-	if (machine->framesOccupied + 1 >= machine->framesLen)
-	{
-		machine->framesLen += VIRTUAL_MACHINE_FRAMES_LENGTH_ADDER;
-		machine->frames = (Frame *) realloc(machine->frames, machine->framesLen * sizeof(Frame));
+	listFrameAppend(&machine->frames, createFrame(machine->frames.listLen, thisFrameIndex));
 
-		// Since we did a realloc, the address of the array may change, so we need to reconifgure the virtual machine's globalFrame
-		machine->globalFrame = &machine->frames[0];
-	}
-
-	machine->frames[machine->framesOccupied] = createFrame(machine->framesOccupied, thisFrameIndex);
-	machine->frame = &machine->frames[machine->framesOccupied];
-
-	machine->framesOccupied++;
+	machine->globalFrame	= listFrameGetPtrAt(&machine->frames, 0);
+	machine->frame			= listFrameGetPtrAt(&machine->frames, machine->frames.listLen - 1);
 }
 
 /*
@@ -77,7 +68,7 @@ Output: None.
 */
 void virtualMachinePopFrame(VirtualMachine *machine)
 {
-	machine->frame = &machine->frames[machine->frame->lastFrameIndex];
+	machine->frame = listFrameGetPtrAt(&machine->frames, machine->frame->lastFrameIndex);
 }
 
 /*
