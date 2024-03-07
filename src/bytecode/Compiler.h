@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../genericTypes/utilities.c"
+
 #include "./Scope.c"
 #include "./Bytecode.h"
-#include "Variable.c"
+#include "./Variable.c"
 
 typedef enum VariableBytecode
 {
@@ -16,11 +18,8 @@ VariableBytecode;
 
 typedef struct Compiler
 {
-	unsigned int bytecodeLength, bytecodeUsed;
-	unsigned char *bytecode;
-
-	unsigned int scopesLength, scopesUsed;
-	Scope *scopes;
+	ListUchar bytecode;
+	ListScope scopes;
 
 	Scope *scope;
 

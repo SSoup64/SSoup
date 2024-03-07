@@ -1,39 +1,38 @@
 #pragma once
 
 #include "./Compiler.h"
+#include "Variable.h"
 
 Compiler createCompiler()
 {
+	Scope *globalScope = (Scope *) malloc(sizeof(Scope));
+
 	Compiler ret =
 	{
-		1, 0,
-		(unsigned char *) malloc(sizeof(unsigned char)),
+		.bytecode = createListUchar(),
+		.scopes = createListScope(),
+
+		.scope = NULL,
+
+		.globalVars = createListVariablePtr(),
+		.variableBytecode = LOAD_TO_STACK,
 	};
 	
-	// Create the scopes array
-	ret.scopesLength = 1;
-
-	ret.scopes = (Scope *) malloc(ret.scopesLength * sizeof(Scope));
-	
 	// Create the global scope
-	createScopeNull(&ret.scopes[0], "global", SCOPE_ROOT);
+	createScopeNull(globalScope, "global", SCOPE_ROOT);
+
+	// Append the global scope to the list
+	listScopeAppend(&ret.scopes, *globalScope);
 	
 	// Set the current scope to be the global scope
-	ret.scope = &ret.scopes[0];
-	ret.scopesUsed = 1;
-
-	// Set the globalVars array to an empty array.
-	ret.globalVars = createListVariablePtr();
-
-	ret.variableBytecode = LOAD_TO_STACK;
+	ret.scope = listScopeGetPtrAt(&ret.scopes, 0);
 
 	return ret;
 }
 
 void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 {
-	unsigned int curScopeIndex = compiler->scope->scopeIndex;
-	Scope newScope; // TODO Find value to initialize this variable to
+	Scope *newScope = (Scope *) malloc(sizeof(Scope)); // TODO Find value to initialize this variable to
 
 	/*
 	TODO: Create function "compilerScopeExists"
@@ -52,58 +51,46 @@ void compilerAppendScope(Compiler *compiler, char *scopeName, ScopeType type)
 	strcat(scopePath, strdup(compiler->scope->scopeName));
 	strcat(scopePath, ":");
 
-	// Append the new scope to the array of scopes
-	if (compiler->scopesUsed >= compiler->scopesLength)
-	{
-		compiler->scopesLength += 8;
-		compiler->scopes = (Scope *) realloc(compiler->scopes, compiler->scopesLength * sizeof(Scope));
-
-		// The pointer compiler->scope needs to change it's value because realloc sometimes changes the address
-		// This comment is here so my future self doesn't delete this code because I forgor about this
-		// Damn, just gotta love C sometimes.
-		compiler->scope = &compiler->scopes[curScopeIndex];
-	}
-
 	// Create the new scope
-	createScope(&newScope, compiler->scopesUsed, compiler->scope->scopeIndex, strdup(scopeName), scopePath, type);
+	createScope(newScope, compiler->scopes.listLen, compiler->scope->scopeIndex, strdup(scopeName), scopePath, type);
 	
 	// Append the new scope
-	compiler->scopes[compiler->scopesUsed++] = newScope;
-	compiler->scope = &compiler->scopes[compiler->scopesUsed - 1];
+	listScopeAppend(&compiler->scopes, *newScope);
+
+	compiler->scope = listScopeGetPtrAt(&compiler->scopes, compiler->scopes.listLen - 1);
 }
 
 // TODO: Maybe make this an inline function at some later point for optimization
 void compilerPopScope(Compiler *compiler)
 {
-	compiler->scope = &compiler->scopes[compiler->scope->prevScopeIndex];
+	// printf("PREVIOUS SCOPE INDEX: %s\n", listScopeGetPtrAt(&compiler->scopes, compiler->scope->prevScopeIndex)->scopeName);
+	compiler->scope = listScopeGetPtrAt(&compiler->scopes, compiler->scope->prevScopeIndex);
 }
 
 void compilerAppendBytecode(Compiler *compiler, unsigned char bytecode)
 {
-	if (compiler->bytecodeUsed + 1 >= compiler->bytecodeLength)
-	{
-		compiler->bytecodeLength *= 2;
-		compiler->bytecode = (unsigned char *) realloc(compiler->bytecode, compiler->bytecodeLength);
-	}
-
-	compiler->bytecode[compiler->bytecodeUsed++] = bytecode;
+	listUcharAppend(&compiler->bytecode, bytecode);
 }
 
 void compilerSetBytecodeAt(Compiler *compiler, unsigned char bytecode, unsigned int address)
 {
-	compiler->bytecode[address] = bytecode;
+	listUcharSetAt(&compiler->bytecode, address, bytecode);
 }
 
 void compilerWriteToFile(Compiler *compiler, FILE *file)
 {
+	int i = 0;
+
 	// Add validation bytes 0x53 0x4F 0x55 0x50 (SOUP);
 	putc(0x53, file);
 	putc(0x4F, file);
 	putc(0x55, file);
 	putc(0x50, file);
 	
-	for (int i = 0; i < compiler->bytecodeUsed; i++)
-		putc(compiler->bytecode[i], file);
+	for (i = 0; i < compiler->bytecode.listLen; i++)
+	{
+		putc(listUcharGetAt(&compiler->bytecode, i), file);
+	}
 }
 
 void compilerSetCurScopeFunc(Compiler *compiler, Func func)
@@ -119,28 +106,31 @@ void compilerSetCurScopeFunc(Compiler *compiler, Func func)
 	compiler->scope->func = func;
 	
 	// Add this scope's index to its parent node's funcsIndices array
-	scopeAddFuncIndex(&compiler->scopes[compiler->scope->prevScopeIndex], compiler->scope->scopeIndex);
+	scopeAddFuncIndex(listScopeGetPtrAt(&compiler->scopes, compiler->scope->prevScopeIndex), compiler->scope->scopeIndex);
 }
 
 unsigned int compilerFindFuncAddress(Compiler *compiler, Scope *curScope, char *name, unsigned int params)
 {
 	unsigned int funcIndex = 0;
 	int i = 0;
+
+	Scope *thisScope = NULL;
 	
 	for (i = 0; i < curScope->funcsIndices.listLen; i++)
 	{
 		funcIndex = listUintGetAt(&curScope->funcsIndices, i);
+		thisScope = listScopeGetPtrAt(&compiler->scopes, funcIndex);
 
-		if (SCOPE_FUNC == compiler->scopes[funcIndex].type && strcmp(compiler->scopes[funcIndex].scopeName, name) == 0 && params == compiler->scopes[funcIndex].func.paramsLen)
+		if (SCOPE_FUNC == thisScope->type && strcmp(thisScope->scopeName, name) == 0 && params == thisScope->func.paramsLen)
 		{
-			return compiler->scopes[funcIndex].func.address;
+			return thisScope->func.address;
 		}
 	}
 
 	// Set the current scope to the parent of the current scope
 	if (curScope->scopeIndex != 0)
 	{
-		return compilerFindFuncAddress(compiler, &compiler->scopes[curScope->prevScopeIndex], strdup(name), params);
+		return compilerFindFuncAddress(compiler, listScopeGetPtrAt(&compiler->scopes, curScope->prevScopeIndex), strdup(name), params);
 	}
 
 	fprintf(stderr, "ERROR: Could not find function %s.\n", name);
@@ -183,7 +173,7 @@ Variable *compilerGetVariable(Compiler *compiler, char *name)
 
 	while (curScope->prevScopeIndex != curScope->scopeIndex && NULL == ret)
 	{
-		curScope = &compiler->scopes[curScope->prevScopeIndex];
+		curScope = listScopeGetPtrAt(&compiler->scopes, curScope->prevScopeIndex);
 		ret = scopeGetVariable(curScope, strdup(name));
 	}
 
@@ -199,14 +189,19 @@ Variable *compilerGetVariable(Compiler *compiler, char *name)
 #ifdef DEBUG
 void DEBUG_compilerPrintScopes(Compiler *compiler)
 {
-	for (int i = 0; i < compiler->scopesUsed; i++)
+	int i = 0;
+	Scope *thisScope = NULL;	
+
+	for (i = 0; i < compiler->scopes.listLen; i++)
 	{
-		printf("%s%s", compiler->scopes[i].scopePath, compiler->scopes[i].scopeName);
+		thisScope = listScopeGetPtrAt(&compiler->scopes, i);
+
+		printf("%s%s", thisScope->scopePath, thisScope->scopeName);
 
 		// If the scope is a function, then print the number of arguments it takes
-		if (compiler->scopes[i].type == SCOPE_FUNC)
+		if (thisScope->type == SCOPE_FUNC)
 		{
-			printf("(%u)", compiler->scopes[i].func.paramsLen);
+			printf("(%u)", thisScope->func.paramsLen);
 		}
 
 		putchar('\n');
@@ -219,11 +214,13 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 	long bytesBuffer = 0;
 	unsigned int address = 0;
 
-	for (int i = 0; i < compiler->bytecodeUsed; i++)
+	int i = 0;
+
+	for (i = 0; i < compiler->bytecode.listLen; i++)
 	{
 		printf("%d\t", i);
 
-		switch (compiler->bytecode[i])
+		switch (listUcharGetAt(&compiler->bytecode, i))
 		{
 			case (unsigned char) I_NOP:
 				printf("NOP");
@@ -237,7 +234,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				for (int j = ++i; j < i + sizeof(long); j++)
 				{
 					bytesBuffer <<= 8;
-					bytesBuffer += compiler->bytecode[j];
+					bytesBuffer += listUcharGetAt(&compiler->bytecode, j);
 				}
 
 				i += sizeof(long) - 1;
@@ -250,8 +247,8 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 			case (unsigned char) I_PUSH_STRING:
 				printf("PUSH_STRING\t");
 
-				while (compiler->bytecode[++i] != '\0')
-					putchar(compiler->bytecode[i]);
+				while (listUcharGetAt(&compiler->bytecode, ++i) != '\0')
+					putchar(listUcharGetAt(&compiler->bytecode, i));
 				break;
 
 			case (unsigned char) I_OP_PLUS:
@@ -282,7 +279,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				for (int j = ++i; j < i + sizeof(unsigned int); j++)
 				{
 					address <<= 8;
-					address += compiler->bytecode[j];
+					address += listUcharGetAt(&compiler->bytecode, j);
 				}
 
 				i += sizeof(unsigned int) - 1;
@@ -298,7 +295,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				for (int j = ++i; j < i + sizeof(unsigned int); j++)
 				{
 					address <<= 8;
-					address += compiler->bytecode[j];
+					address += listUcharGetAt(&compiler->bytecode, j);
 				}
 
 				i += sizeof(unsigned int) - 1;
@@ -314,7 +311,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				for (int j = ++i; j < i + sizeof(unsigned int); j++)
 				{
 					address <<= 8;
-					address += compiler->bytecode[j];
+					address += listUcharGetAt(&compiler->bytecode, j);
 				}
 
 				i += sizeof(unsigned int) - 1;
@@ -330,7 +327,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				for (int j = ++i; j < i + sizeof(unsigned int); j++)
 				{
 					address <<= 8;
-					address += compiler->bytecode[j];
+					address += listUcharGetAt(&compiler->bytecode, j);
 				}
 
 				i += sizeof(unsigned int) - 1;
@@ -350,7 +347,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				for (int j = ++i; j < i + sizeof(unsigned int); j++)
 				{
 					address <<= 8;
-					address += compiler->bytecode[j];
+					address += listUcharGetAt(&compiler->bytecode, j);
 				}
 
 				i += sizeof(unsigned int) - 1;
@@ -366,7 +363,7 @@ void DEBUG_compilerPrintBytecode(Compiler *compiler)
 				for (int j = ++i; j < i + sizeof(unsigned int); j++)
 				{
 					address <<= 8;
-					address += compiler->bytecode[j];
+					address += listUcharGetAt(&compiler->bytecode, j);
 				}
 
 				i += sizeof(unsigned int) - 1;

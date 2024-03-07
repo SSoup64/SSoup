@@ -170,7 +170,7 @@ void compile(Compiler *compiler, AstNode *node)
 				// It could lead to some good solutions for repetative code that only occurs in one other function.
 				// But I am getting ahead of myself.
 				// That may come later down the road.
-				fprintf(stderr, "ERROR: Cannot create a function inside a function.\n");
+				fprintf(stderr, "ERROR: Cannot create a function inside a function. %s\n", compiler->scope->scopeName);
 				exit(1);
 			}
 
@@ -181,7 +181,7 @@ void compile(Compiler *compiler, AstNode *node)
 			// compilerAppendBytecode(compiler, (unsigned char) I_JMP);
 			
 			// Save the current length of the bytecode so we could rewrite it later
-			address = compiler->bytecodeUsed;
+			address = compiler->bytecode.listLen;
 			
 			/*
 			for (i = 0; i < sizeof(unsigned int); i++)
@@ -191,7 +191,7 @@ void compile(Compiler *compiler, AstNode *node)
 			*/
 
 			// Set the scopes current function
-			compilerSetCurScopeFunc(compiler, createFunc(compiler->bytecodeUsed, listAstNodeGetAt(&node->childNodes, NODE_FUNC_DECL_ARG_ARGS).childNodes.listLen));
+			compilerSetCurScopeFunc(compiler, createFunc(compiler->bytecode.listLen, listAstNodeGetAt(&node->childNodes, NODE_FUNC_DECL_ARG_ARGS).childNodes.listLen));
 
 			// Compile the parameter list
 			compile(compiler, listAstNodeGetPtrAt(&node->childNodes, NODE_FUNC_DECL_ARG_ARGS));
@@ -206,7 +206,7 @@ void compile(Compiler *compiler, AstNode *node)
 			// Set the address to jump to
 			for (i = 0; i < sizeof(unsigned int); i++)
 			{
-				compilerSetBytecodeAt(compiler, compiler->bytecodeUsed >> (BYTE_SIZE_IN_BITS * i), address + sizeof(unsigned int) - i - 1);
+				compilerSetBytecodeAt(compiler, compiler->bytecode.listLen >> (BYTE_SIZE_IN_BITS * i), address + sizeof(unsigned int) - i - 1);
 			}
 			*/
 
@@ -323,7 +323,7 @@ void startCompile(Compiler *compiler, AstNode *node)
 	compilerAppendBytecode(compiler, (unsigned char) I_NPL);
 	compilerAppendBytecode(compiler, (unsigned char) I_JMPF);
 	
-	mainCallAddress = compiler->bytecodeUsed;
+	mainCallAddress = compiler->bytecode.listLen;
 
 	// Write a placeholder value for the main func address
 	for (i = sizeof(unsigned int) - 1; i >= 0; i--)
@@ -334,7 +334,7 @@ void startCompile(Compiler *compiler, AstNode *node)
 	// Add jump to the exit
 	compilerAppendBytecode(compiler, (unsigned char) I_JMP);
 
-	jumpToExitAddress = compiler->bytecodeUsed;
+	jumpToExitAddress = compiler->bytecode.listLen;
 
 	// Write a placeholder value for the exit instruction
 	for (i = sizeof(unsigned int) - 1; i >= 0; i--)
@@ -346,7 +346,7 @@ void startCompile(Compiler *compiler, AstNode *node)
 	compile(compiler, node);
 	
 	// Find the address of the main function and add it to the bytecode
-	mainFuncAddress = compilerFindFuncAddress(compiler, &compiler->scopes[0], strdup("main"), 0);
+	mainFuncAddress = compilerFindFuncAddress(compiler, listScopeGetPtrAt(&compiler->scopes, 0), strdup("main"), 0);
 	
 	for (i = 0; i < sizeof(unsigned int); i++)
 	{
@@ -359,6 +359,6 @@ void startCompile(Compiler *compiler, AstNode *node)
 	// Write the address of theh exit instruction to the bytecode
 	for (i = 0; i < sizeof(unsigned int); i++)
 	{
-		compilerSetBytecodeAt(compiler, (compiler->bytecodeUsed - 1) >> (BYTE_SIZE_IN_BITS * i), jumpToExitAddress + sizeof(unsigned int) - i - 1);
+		compilerSetBytecodeAt(compiler, (compiler->bytecode.listLen - 1) >> (BYTE_SIZE_IN_BITS * i), jumpToExitAddress + sizeof(unsigned int) - i - 1);
 	}
 }

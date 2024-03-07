@@ -29,6 +29,9 @@ typedef struct Scope
 	// Previous scope index
 	unsigned int prevScopeIndex;
 
+	// The next scopes
+	ListUint nextScopesIndices;
+
 	// The scope's name and its path
 	char *scopeName;
 	char *scopePath;

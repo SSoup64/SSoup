@@ -40,6 +40,8 @@ void createScope(Scope *newScope, unsigned int scopeIndex, unsigned int prevScop
 	newScope->scopeIndex = scopeIndex;
 	newScope->prevScopeIndex = prevScopeIndex;
 
+	newScope->nextScopesIndices = createListUint();
+
 	newScope->scopeName = strdup(name);
 	newScope->scopePath = strdup(path);
 
